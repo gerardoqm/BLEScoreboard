@@ -33,3 +33,43 @@ A native, low-latency iOS controller and watchOS extension built with **SwiftUI*
 4. **Deploy:** Plug your physical iPhone into your Mac via USB, select it in the target device dropdown menu, and click **Run (Play)**.
 
 > 🔒 **Privacy Permissions Note:** The application's `Info.plist` is pre-configured with the mandatory `Privacy - Bluetooth Always Usage Description` string key required by Apple to prevent runtime permission crashes.
+
+
+
+ 🧠 SYSTEM DATA PIPELINE & OVER-THE-AIR ARCHITECTURE
+ ───────────────────────────────────────────────────
+
+ ┌─────────────────┐           (WatchConnectivity)          ┌────────────────┐
+ │   APPLE WATCH   │ ◄────────────────────────────────────► │   IPHONE APP   │
+ │ REMOTE EXTENSION│        Scores, Periods & Controls      │  (Master Clock │
+ └─────────────────┘                                        │  & UI Engine)  │
+                                                            └───────┬────────┘
+                                                                    │
+                                                                    │ (Bluetooth LE)
+                                                                    │ Transmits 8-Byte Packet
+                                                                    │ Receives 5-Byte Notify
+                                                                    ▼
+                                                            ┌────────────────┐
+                                                            │    ESP32-S3    │
+                                                            │ DISPLAY SERVER │
+                                                            └───────┬────────┘
+                                                                    │
+                                                                    │ (HUB75 Flat Ribbon)
+                                                                    ▼
+                                                            ┌────────────────┐
+                                                            │ 80x40 P4 PANEL │
+                                                            │ (Graphics Out) │
+                                                            └────────────────┘
+
+ 📶 BLUETOOTH RADIO SYSTEM CHECK (Onboard WS2812B RGB NeoPixel)
+ ──────────────────────────────────────────────────────────────
+ 
+  [ SEARCHING_NEW ]  ──► (Blinks Blue 🔵) ──► Looking for phone app handshake.
+         ▲
+         │ (If 30-Second Limit Drops)
+         │
+  [ RETRYING_PAST ]  ──► (Blinks Cyan 🌐) ──► Signal dropout! Keep clock ticking 
+         ▲                                    on phone while scanning to recover link.
+         │ (If Accidental Drop Occurs)
+         │
+ [LINKED_CONNECTED] ──► (Solid Green 🟢) ──► BLE Sync Handshake Active.
