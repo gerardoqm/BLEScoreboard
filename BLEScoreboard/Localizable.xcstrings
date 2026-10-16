@@ -340,6 +340,26 @@
           }
         }
       }
+    },
+    "Battery %lld%%": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batería %lld%%"
+          }
+        }
+      }
+    },
+    "Board firmware is outdated. Update it to use all features.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El firmware del marcador está desactualizado. Actualízalo para usar todas las funciones."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

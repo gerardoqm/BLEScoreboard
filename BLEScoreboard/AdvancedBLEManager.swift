@@ -18,10 +18,18 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var timerMin = 10
     @Published var timerSec = 0
     @Published var isTimerRunning = false
-    @Published var homeName = "HOME"
-    @Published var awayName = "AWAY"
+    @Published var homeName = String(localized: "HOME")
+    @Published var awayName = String(localized: "AWAY")
     @Published var periodLabelText = String(localized: "Period")
     @Published var renameStatus = ""
+    
+    // Board telemetry (notification on the main characteristic)
+    @Published var batteryPercent: Int? = nil
+    @Published var boardProtocolVersion: Int? = nil
+    @Published var telemetryReceived = false
+    /// Telemetry layout version this app expects. Keep in sync with PROTOCOL_VERSION in scoreboard_BT_ESP32S3.ino.
+    static let expectedProtocolVersion = 2
+    var boardFirmwareOutdated: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < Self.expectedProtocolVersion }
     
     // Visual Banner Alert State publishers
     @Published var alertBannerTitle = ""
@@ -101,9 +109,10 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     }
     
     /// The LED panel font is ASCII-only, so strip accents and drop anything else (e.g. "1.º Período" -> "1. Periodo").
+    /// Also removes "|", which separates the fields of the text payload.
     private func panelSafe(_ text: String) -> String {
         let folded = text.folding(options: .diacriticInsensitive, locale: .current)
-        return String(String.UnicodeScalarView(folded.unicodeScalars.filter { $0.isASCII }))
+        return String(String.UnicodeScalarView(folded.unicodeScalars.filter { $0.isASCII && $0 != "|" }))
     }
     
     func syncDataToDisplay() {
@@ -120,16 +129,13 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             UInt8(totalPeriods)
         ])
         
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .ordinal
-        formatter.locale = Locale.current
-        let ordinalString = formatter.string(from: NSNumber(value: period)) ?? "\(period)"
-        
         let ratioLabel = "\(period)/\(totalPeriods)"
         let clockTimeStr = String(format: "%02d:%02d", timerMin, timerSec)
-        let lowerClockBannerLabel = "\(ordinalString) \(periodLabelText) \(clockTimeStr)"
+        // The panel fits ~13 characters on the bottom line: "Q2 07:45" (period initial + number + clock).
+        let initial = panelSafe(periodLabelText).uppercased().first(where: { $0.isLetter }).map(String.init) ?? "P"
+        let lowerClockBannerLabel = "\(initial)\(period) \(clockTimeStr)"
         
-        let stringPayload = panelSafe("\(homeName)|\(awayName)|\(ratioLabel)|\(lowerClockBannerLabel)")
+        let stringPayload = [homeName, awayName, ratioLabel, lowerClockBannerLabel].map(panelSafe).joined(separator: "|")
         if let textData = stringPayload.data(using: .utf8) { packet.append(textData) }
         
         peripheral.writeValue(packet, for: characteristic, type: .withResponse)
@@ -154,6 +160,16 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        if characteristic.uuid == charUUID, let data = characteristic.value, data.count >= 5 {
+            // [min, sec, running, period, battery%] (+ [flags, protocolVersion] from protocol v2)
+            let battery = Int(data[4]), version = data.count >= 7 ? Int(data[6]) : 1
+            DispatchQueue.main.async {
+                self.batteryPercent = min(battery, 100)
+                self.boardProtocolVersion = version
+                self.telemetryReceived = true
+            }
+            return
+        }
         guard characteristic.uuid == configUUID, let data = characteristic.value, data.count >= 2 else { return }
         let cmd = data[0], status = data[1]
         DispatchQueue.main.async {
@@ -205,13 +221,20 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             configCharacteristic = characteristic
             peripheral.setNotifyValue(true, for: characteristic)
         }
-        for characteristic in characteristics where characteristic.uuid == charUUID { targetCharacteristic = characteristic; syncDataToDisplay() }
+        for characteristic in characteristics where characteristic.uuid == charUUID {
+            targetCharacteristic = characteristic
+            peripheral.setNotifyValue(true, for: characteristic)
+            syncDataToDisplay()
+        }
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         isConnected = false
         targetCharacteristic = nil
         configCharacteristic = nil
+        batteryPercent = nil
+        boardProtocolVersion = nil
+        telemetryReceived = false
         
         if wasIntentionalDisconnect {
             connectedPeripheral = nil

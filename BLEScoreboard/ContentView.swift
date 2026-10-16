@@ -38,6 +38,19 @@ struct ContentView: View {
                                     Spacer()
                                     Text("Linked").foregroundColor(.green).font(.caption2).bold()
                                 }
+                                if let battery = ble.batteryPercent {
+                                    HStack {
+                                        Image(systemName: battery < 15 ? "battery.0percent" : (battery < 50 ? "battery.50percent" : "battery.100percent"))
+                                            .foregroundColor(battery < 15 ? .red : (battery < 50 ? .orange : .green))
+                                        Text("Battery \(battery)%").font(.caption).bold()
+                                            .foregroundColor(battery < 15 ? .red : (battery < 50 ? .orange : .green))
+                                        Spacer()
+                                    }
+                                }
+                                if ble.boardFirmwareOutdated {
+                                    Label("Board firmware is outdated. Update it to use all features.", systemImage: "exclamationmark.triangle.fill")
+                                        .font(.caption2).foregroundColor(.orange)
+                                }
                                 HStack {
                                     Image(systemName: "clock.badge.checkmark").foregroundColor(.purple)
                                     Text("Unit Name:").font(.subheadline).bold()
