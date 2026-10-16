@@ -220,9 +220,10 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         DispatchQueue.main.async {
-            if let h = message["h"] as? Int { self.homeScore = h }
-            if let a = message["a"] as? Int { self.awayScore = a }
-            if let p = message["p"] as? Int { self.period = p }
+            // Same limits as the iPhone UI, so the UInt8 conversions in syncDataToDisplay() can't trap.
+            if let h = message["h"] as? Int { self.homeScore = min(max(h, 0), 99) }
+            if let a = message["a"] as? Int { self.awayScore = min(max(a, 0), 99) }
+            if let p = message["p"] as? Int { self.period = min(max(p, 1), self.totalPeriods) }
             if let r = message["r"] as? Bool { if r != self.isTimerRunning { self.toggleClock() } }
             self.syncDataToDisplay()
         }
