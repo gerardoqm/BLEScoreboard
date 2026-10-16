@@ -47,7 +47,7 @@ struct ContentView: View {
     @State private var period = 1
     @State private var totalPeriods = 4
     @State private var isRunning = false
-    @State private var periodLabelText = "Period"
+    @State private var periodLabelText = String(localized: "Period")
     @State private var sessionDelegate = WatchSessionDelegate()
     @State private var watchAlertText = ""
     @State private var showWatchAlert = false
@@ -108,7 +108,7 @@ struct ContentView: View {
                         
                         // Timer Start / Pause Switch Flag
                         Button(action: { isRunning.toggle(); pushToPhone() }) {
-                            Text(isRunning ? "PAUSE" : "START")
+                            Text(LocalizedStringKey(isRunning ? "PAUSE" : "START"))
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(isRunning ? .orange : .green)
                         }

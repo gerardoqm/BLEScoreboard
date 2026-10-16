@@ -20,7 +20,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var isTimerRunning = false
     @Published var homeName = "HOME"
     @Published var awayName = "AWAY"
-    @Published var periodLabelText = "Period"
+    @Published var periodLabelText = String(localized: "Period")
     @Published var renameStatus = ""
     
     // Visual Banner Alert State publishers
@@ -100,6 +100,12 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         syncDataToDisplay()
     }
     
+    /// The LED panel font is ASCII-only, so strip accents and drop anything else (e.g. "1.º Período" -> "1. Periodo").
+    private func panelSafe(_ text: String) -> String {
+        let folded = text.folding(options: .diacriticInsensitive, locale: .current)
+        return String(String.UnicodeScalarView(folded.unicodeScalars.filter { $0.isASCII }))
+    }
+    
     func syncDataToDisplay() {
         guard let peripheral = connectedPeripheral, let characteristic = targetCharacteristic else { return }
         
@@ -123,7 +129,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         let clockTimeStr = String(format: "%02d:%02d", timerMin, timerSec)
         let lowerClockBannerLabel = "\(ordinalString) \(periodLabelText) \(clockTimeStr)"
         
-        let stringPayload = "\(homeName)|\(awayName)|\(ratioLabel)|\(lowerClockBannerLabel)"
+        let stringPayload = panelSafe("\(homeName)|\(awayName)|\(ratioLabel)|\(lowerClockBannerLabel)")
         if let textData = stringPayload.data(using: .utf8) { packet.append(textData) }
         
         peripheral.writeValue(packet, for: characteristic, type: .withResponse)
@@ -136,14 +142,14 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         let trimmed = newName.trimmingCharacters(in: .whitespaces)
         let isPrintableASCII = trimmed.utf8.allSatisfy { $0 >= 0x20 && $0 <= 0x7E }
         guard let peripheral = connectedPeripheral, let config = configCharacteristic else {
-            renameStatus = "Board not ready for renaming (firmware update needed?)"
+            renameStatus = String(localized: "Board not ready for renaming (firmware update needed?)")
             return
         }
         guard !trimmed.isEmpty, trimmed.utf8.count <= Self.deviceNameMaxLength, isPrintableASCII else {
-            renameStatus = "Name must be 1-\(Self.deviceNameMaxLength) plain characters"
+            renameStatus = String(localized: "Name must be 1-\(Self.deviceNameMaxLength) plain characters")
             return
         }
-        renameStatus = "Renaming..."
+        renameStatus = String(localized: "Renaming...")
         peripheral.writeValue(Data([cmdSetName]) + Data(trimmed.utf8), for: config, type: .withResponse)
     }
     
@@ -157,9 +163,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                     peripheral.writeValue(Data([self.cmdApply]), for: config, type: .withResponse)
                 }
             case (self.cmdApply, 0):
-                self.renameStatus = "Renamed. The board is restarting..."
+                self.renameStatus = String(localized: "Renamed. The board is restarting...")
             default:
-                self.renameStatus = "Board rejected the rename (code \(status))"
+                self.renameStatus = String(localized: "Board rejected the rename (code \(Int(status)))")
             }
         }
     }
@@ -231,11 +237,11 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         // Configure Custom Display Text Labels
         switch type {
         case .startEvent:
-            alertBannerTitle = "▶️ Game Started!"
+            alertBannerTitle = String(localized: "▶️ Game Started!")
         case .periodAdvance:
-            alertBannerTitle = "⏰ \(ordinalString) \(periodLabelText) Starting!"
+            alertBannerTitle = String(localized: "⏰ \(ordinalString) \(periodLabelText) Starting!")
         case .matchComplete:
-            alertBannerTitle = "🏁 Full Match Complete!"
+            alertBannerTitle = String(localized: "🏁 Full Match Complete!")
         }
         
         // Present the visual popup layout banner overlay

@@ -11,7 +11,7 @@ struct ContentView: View {
         formatter.numberStyle = .ordinal
         formatter.locale = Locale.current
         let ordinalStr = formatter.string(from: NSNumber(value: p)) ?? "\(p)"
-        return "\(ordinalStr) of \(total)"
+        return String(localized: "\(ordinalStr) of \(total)")
     }
     
     var body: some View {
@@ -23,7 +23,7 @@ struct ContentView: View {
                         Text("Select your board to avoid interference.").font(.caption).foregroundColor(.secondary)
                         List(ble.discoveredDevices, id: \.identifier) { device in
                             HStack {
-                                Text(device.name ?? "Unnamed Scoreboard").bold()
+                                Text(device.name ?? String(localized: "Unnamed Scoreboard")).bold()
                                 Spacer()
                                 Button("Link Display") { ble.connect(to: device) }.buttonStyle(.borderedProminent)
                             }
@@ -79,13 +79,13 @@ struct ContentView: View {
                             
                             HStack(spacing: 20) {
                                 VStack {
-                                    Text(ble.homeName.isEmpty ? "HOME" : ble.homeName.uppercased()).bold().foregroundColor(.blue).lineLimit(1)
+                                    Text(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName.uppercased()).bold().foregroundColor(.blue).lineLimit(1)
                                     Text("\(ble.homeScore)").font(.system(size: 55, weight: .black, design: .monospaced))
                                     Stepper("", value: $ble.homeScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
                                 }.frame(maxWidth: .infinity).padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
                                 
                                 VStack {
-                                    Text(ble.awayName.isEmpty ? "AWAY" : ble.awayName.uppercased()).bold().foregroundColor(.red).lineLimit(1)
+                                    Text(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName.uppercased()).bold().foregroundColor(.red).lineLimit(1)
                                     Text("\(ble.awayScore)").font(.system(size: 55, weight: .black, design: .monospaced))
                                     Stepper("", value: $ble.awayScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
                                 }.frame(maxWidth: .infinity).padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
@@ -112,10 +112,10 @@ struct ContentView: View {
                             }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
                             
                             VStack(spacing: 12) {
-                                Text(getOrdinalLabel(p: ble.period, total: ble.totalPeriods) + " Countdown").font(.subheadline).foregroundColor(.secondary).bold()
+                                Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) Countdown").font(.subheadline).foregroundColor(.secondary).bold()
                                 Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 40, weight: .bold, design: .monospaced))
                                 HStack(spacing: 15) {
-                                    Button(ble.isTimerRunning ? "Pause" : "Start") { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
+                                    Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
                                     Button("Reset Clock") { ble.resetClockManual(minutes: lastSavedMinutes) }.buttonStyle(.bordered)
                                     Stepper("Min", value: Binding(get: { ble.timerMin }, set: { newValue in ble.timerMin = newValue; lastSavedMinutes = newValue; ble.syncDataToDisplay() }), in: 1...90).labelsHidden()
                                 }

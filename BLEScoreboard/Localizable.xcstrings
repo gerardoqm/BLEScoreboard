@@ -1,0 +1,346 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Select Your Scoreboard": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona tu marcador"
+          }
+        }
+      }
+    },
+    "Select your board to avoid interference.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona tu marcador para evitar interferencias."
+          }
+        }
+      }
+    },
+    "Unnamed Scoreboard": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcador sin nombre"
+          }
+        }
+      }
+    },
+    "Link Display": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincular marcador"
+          }
+        }
+      }
+    },
+    "Radar Scanner": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscador"
+          }
+        }
+      }
+    },
+    "Match Configuration": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración del partido"
+          }
+        }
+      }
+    },
+    "Linked": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vinculado"
+          }
+        }
+      }
+    },
+    "Unit Name:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del periodo:"
+          }
+        }
+      }
+    },
+    "e.g. Period, Cuarto, Tiempo": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ej. Periodo, Cuarto, Tiempo"
+          }
+        }
+      }
+    },
+    "Board Name:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del marcador:"
+          }
+        }
+      }
+    },
+    "Rename": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renombrar"
+          }
+        }
+      }
+    },
+    "Home Team": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipo local"
+          }
+        }
+      }
+    },
+    "Away Team": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipo visitante"
+          }
+        }
+      }
+    },
+    "REDS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ROJOS"
+          }
+        }
+      }
+    },
+    "BLUES": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AZULES"
+          }
+        }
+      }
+    },
+    "%@ %@ Match": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partido: %1$@ %2$@"
+          }
+        }
+      }
+    },
+    "HOME": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LOCAL"
+          }
+        }
+      }
+    },
+    "AWAY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VISITA"
+          }
+        }
+      }
+    },
+    "LED Panel Brightness": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brillo del panel LED"
+          }
+        }
+      }
+    },
+    "%@ Countdown": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta regresiva: %@"
+          }
+        }
+      }
+    },
+    "Pause": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausar"
+          }
+        }
+      }
+    },
+    "Start": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar"
+          }
+        }
+      }
+    },
+    "Reset Clock": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar reloj"
+          }
+        }
+      }
+    },
+    "Disconnect Board Casing": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar marcador"
+          }
+        }
+      }
+    },
+    "%@ of %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$lld"
+          }
+        }
+      }
+    },
+    "▶️ Game Started!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "▶️ ¡Partido iniciado!"
+          }
+        }
+      }
+    },
+    "⏰ %@ %@ Starting!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⏰ ¡Comienza %1$@ %2$@!"
+          }
+        }
+      }
+    },
+    "🏁 Full Match Complete!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏁 ¡Partido terminado!"
+          }
+        }
+      }
+    },
+    "Board not ready for renaming (firmware update needed?)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El marcador no está listo para renombrarse (¿falta actualizar el firmware?)"
+          }
+        }
+      }
+    },
+    "Name must be 1-%lld plain characters": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El nombre debe tener de 1 a %lld caracteres sin acentos"
+          }
+        }
+      }
+    },
+    "Renaming...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renombrando..."
+          }
+        }
+      }
+    },
+    "Renamed. The board is restarting...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo. El marcador se está reiniciando..."
+          }
+        }
+      }
+    },
+    "Board rejected the rename (code %lld)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El marcador rechazó el nombre (código %lld)"
+          }
+        }
+      }
+    },
+    "Period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periodo"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
