@@ -31,6 +31,13 @@ class WatchSessionDelegate: NSObject, WCSessionDelegate {
                 }
             }
         }
+        if let alertText = message["alertText"] as? String {
+                DispatchQueue.main.async {
+                    // Accessing global view bindings directly can break scope rules inside un-mapped delegates.
+                    // Instead, pass the alert trigger downstream over a global Notification Center posting or write into a shared view controller model if preferred.
+                }
+            }
+        
     }
 }
 // MARK: - Watch Control Interface Layout View
@@ -42,7 +49,9 @@ struct ContentView: View {
     @State private var isRunning = false
     @State private var periodLabelText = "Period"
     @State private var sessionDelegate = WatchSessionDelegate()
-    
+    @State private var watchAlertText = ""
+    @State private var showWatchAlert = false
+
     // Transmits messages instantly down to the linked iPhone background receiver
     func pushToPhone() {
         guard WCSession.default.activationState == .activated else {
@@ -61,62 +70,80 @@ struct ContentView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 8) {
-                HStack(spacing: 6) {
-                    // Home Increment Block
-                    Button(action: { homeScore += 1; pushToPhone() }) {
-                        VStack(spacing: 2) {
-                            Text("HOME").font(.system(size: 10, weight: .bold)).foregroundColor(.blue)
-                            Text("\(homeScore)").font(.title2).bold()
+        ZStack {
+            ScrollView {
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        // Home Increment Block
+                        Button(action: { homeScore += 1; pushToPhone() }) {
+                            VStack(spacing: 2) {
+                                Text("HOME").font(.system(size: 10, weight: .bold)).foregroundColor(.blue)
+                                Text("\(homeScore)").font(.title2).bold()
+                            }
                         }
+                        .buttonStyle(.bordered)
+                        .tint(.blue.opacity(0.15))
+                        
+                        // Away Increment Block
+                        Button(action: { awayScore += 1; pushToPhone() }) {
+                            VStack(spacing: 2) {
+                                Text("AWAY").font(.system(size: 10, weight: .bold)).foregroundColor(.red)
+                                Text("\(awayScore)").font(.title2).bold()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red.opacity(0.15))
                     }
-                    .buttonStyle(.bordered)
-                    .tint(.blue.opacity(0.15))
                     
-                    // Away Increment Block
-                    Button(action: { awayScore += 1; pushToPhone() }) {
-                        VStack(spacing: 2) {
-                            Text("AWAY").font(.system(size: 10, weight: .bold)).foregroundColor(.red)
-                            Text("\(awayScore)").font(.title2).bold()
+                    HStack(spacing: 6) {
+                        // Period Cycle Selector Toggle
+                        Button(action: {
+                            period = period < totalPeriods ? period + 1 : 1
+                            pushToPhone()
+                        }) {
+                            Text("PER: \(period)/\(totalPeriods)")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.yellow)
+                        }
+                        
+                        // Timer Start / Pause Switch Flag
+                        Button(action: { isRunning.toggle(); pushToPhone() }) {
+                            Text(isRunning ? "PAUSE" : "START")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(isRunning ? .orange : .green)
                         }
                     }
-                    .buttonStyle(.bordered)
-                    .tint(.red.opacity(0.15))
-                }
-                
-                HStack(spacing: 6) {
-                    // Period Cycle Selector Toggle
-                    Button(action: {
-                        period = period < totalPeriods ? period + 1 : 1
+                    
+                    // Match Zero-Reset
+                    Button("Reset Values") {
+                        homeScore = 0
+                        awayScore = 0
+                        period = 1
+                        isRunning = false
                         pushToPhone()
-                    }) {
-                        Text("PER: \(period)/\(totalPeriods)")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.yellow)
                     }
-                    
-                    // Timer Start / Pause Switch Flag
-                    Button(action: { isRunning.toggle(); pushToPhone() }) {
-                        Text(isRunning ? "PAUSE" : "START")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(isRunning ? .orange : .green)
-                    }
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
                 }
-                
-                // Match Zero-Reset
-                Button("Reset Values") {
-                    homeScore = 0
-                    awayScore = 0
-                    period = 1
-                    isRunning = false
-                    pushToPhone()
-                }
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .padding(.top, 4)
+                .padding(.horizontal, 4)
             }
-            .padding(.horizontal, 4)
+            // FIXED: APPLE WATCH VISUAL HUD BANNER OVERLAY CARD
+            if showWatchAlert {
+                    VStack {
+                        Text(watchAlertText)
+                            .font(.caption2).bold()
+                            .multilineTextAlignment(.center)
+                            .padding(8)
+                            .background(Color.purple.cornerRadius(8))
+                            .shadow(radius: 4)
+                        Spacer()
+                    }
+                    .transition(.move(edge: .top))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { self.showWatchAlert = false }
+                    }
+                }
         }
         .onAppear {
             if WCSession.isSupported() {

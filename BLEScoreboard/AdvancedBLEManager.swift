@@ -3,12 +3,13 @@ import CoreBluetooth
 import WatchConnectivity
 import Combine
 
+
 class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate, WCSessionDelegate {
-    
     @Published var discoveredDevices: [CBPeripheral] = []
     @Published var connectedPeripheral: CBPeripheral? = nil
     @Published var isConnected = false
     
+    // Core Parameters
     @Published var homeScore = 0
     @Published var awayScore = 0
     @Published var period = 1
@@ -21,27 +22,27 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var awayName = "AWAY"
     @Published var periodLabelText = "Period"
     
+    // Visual Banner Alert State publishers
+    @Published var alertBannerTitle = ""
+    @Published var showAlertBanner = false
+    
     private var centralManager: CBCentralManager!
     private var targetCharacteristic: CBCharacteristic?
     private var nativeClockTimer: Timer? = nil
+    private var wasIntentionalDisconnect = false
     
     let serviceUUID = CBUUID(string: "12345678-1234-1234-1234-123456789012")
     let charUUID    = CBUUID(string: "87654321-4321-4321-4321-210987654321")
     
     override init() {
-        // Step 1: Call super.init FIRST to initialize the base NSObject and publishers
         super.init()
-        
-        // Step 2: Safe initialization of custom manager objects after super is ready
         centralManager = CBCentralManager(delegate: self, queue: nil)
-        
-        // Step 3: Configure optional watch session attachments
         if WCSession.isSupported() {
             WCSession.default.delegate = self
             WCSession.default.activate()
         }
     }
-    // MARK: - Core Timer Loop
+    
     func toggleClock() {
         isTimerRunning.toggle()
         if isTimerRunning {
@@ -64,9 +65,6 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 timerMin -= 1
                 timerSec = 59
             } else {
-                // ==========================================
-                // 🚨 TIME EXPIRED: AUTO ADVANCE MANAGEMENT
-                // ==========================================
                 nativeClockTimer?.invalidate()
                 nativeClockTimer = nil
                 isTimerRunning = false
@@ -94,7 +92,6 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         syncDataToDisplay()
     }
     
-    // MARK: - BLE Transmission
     func syncDataToDisplay() {
         guard let peripheral = connectedPeripheral, let characteristic = targetCharacteristic else { return }
         
@@ -125,46 +122,94 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         syncWatchData()
     }
     
-    // Core Navigation Methods Configuration
-    func startScanning() {
-        discoveredDevices.removeAll()
-        if centralManager.state == .poweredOn { centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil) }
-    }
-    
+    // MARK: - Safe Interruption & Auto Reconnect Logic
     func connect(to peripheral: CBPeripheral) {
-        centralManager.stopScan(); connectedPeripheral = peripheral
-        connectedPeripheral?.delegate = self; centralManager.connect(peripheral, options: nil)
+        wasIntentionalDisconnect = false // Clear tracking flag
+        centralManager.stopScan()
+        connectedPeripheral = peripheral
+        connectedPeripheral?.delegate = self
+        centralManager.connect(peripheral, options: nil)
     }
     
-    func disconnect() { if let peripheral = connectedPeripheral { centralManager.cancelPeripheralConnection(peripheral) } }
+    func disconnect() {
+        wasIntentionalDisconnect = true // Lock tracking flag
+        if let peripheral = connectedPeripheral {
+            centralManager.cancelPeripheralConnection(peripheral)
+        }
+    }
+    
     func centralManagerDidUpdateState(_ central: CBCentralManager) { if central.state == .poweredOn { startScanning() } }
+    func startScanning() { discoveredDevices.removeAll(); if centralManager.state == .poweredOn { centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil) } }
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         if !discoveredDevices.contains(where: { $0.identifier == peripheral.identifier }) { discoveredDevices.append(peripheral) }
+        
+        // FIXED: Auto-reconnect handshake recovery sequence
+        if let deadPeripheral = connectedPeripheral, peripheral.identifier == deadPeripheral.identifier && !wasIntentionalDisconnect {
+            print("Accidental dropout link spotted! Re-coupling with scoreboard panel automatically...")
+            connect(to: peripheral)
+        }
     }
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) { isConnected = true; peripheral.discoverServices([serviceUUID]) }
-    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) { isConnected = false; connectedPeripheral = nil; targetCharacteristic = nil; startScanning() }
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) { guard let services = peripheral.services else { return }; for service in services { peripheral.discoverCharacteristics([charUUID], for: service) } }
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
         for characteristic in characteristics where characteristic.uuid == charUUID { targetCharacteristic = characteristic; syncDataToDisplay() }
     }
     
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        isConnected = false
+        targetCharacteristic = nil
+        
+        if wasIntentionalDisconnect {
+            connectedPeripheral = nil
+            startScanning()
+        } else {
+            // FIXED: Accidental signal dropout drop occurred - Keep clock ticking on iOS and scan to re-couple
+            print("Scoreboard disconnected accidentally! Maintaining active session timers on screen...")
+            if centralManager.state == .poweredOn {
+                centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
+            }
+        }
+    }
+    
+    // MARK: - Visual & Haptic Alerts System
     enum MatchEventType { case startEvent, periodAdvance, matchComplete }
     
     private func triggerHapticAlert(type: MatchEventType) {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .ordinal
+        formatter.locale = Locale.current
+        let ordinalString = formatter.string(from: NSNumber(value: period)) ?? "\(period)"
+        
+        // Configure Custom Display Text Labels
+        switch type {
+        case .startEvent:
+            alertBannerTitle = "▶️ Game Started!"
+        case .periodAdvance:
+            alertBannerTitle = "⏰ \(ordinalString) \(periodLabelText) Starting!"
+        case .matchComplete:
+            alertBannerTitle = "🏁 Full Match Complete!"
+        }
+        
+        // Present the visual popup layout banner overlay
+        withAnimation(.spring()) { showAlertBanner = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            withAnimation { self.showAlertBanner = false }
+        }
+        
         let style: UIImpactFeedbackGenerator.FeedbackStyle = (type == .startEvent) ? .medium : .heavy
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.prepare(); generator.impactOccurred()
         if type == .matchComplete {
             for delay in [0.2, 0.4] { DispatchQueue.main.asyncAfter(deadline: .now() + delay) { generator.impactOccurred() } }
         }
-        sendAlertPayloadToWatch(type: type)
+        sendAlertPayloadToWatch(type: type, banner: alertBannerTitle)
     }
     
-    private func sendAlertPayloadToWatch(type: MatchEventType) {
+    private func sendAlertPayloadToWatch(type: MatchEventType, banner: String) {
         guard WCSession.default.activationState == .activated else { return }
         let alertID = type == .startEvent ? 1 : (type == .periodAdvance ? 2 : 3)
-        WCSession.default.sendMessage(["triggerAlert": alertID], replyHandler: nil, errorHandler: nil)
+        WCSession.default.sendMessage(["triggerAlert": alertID, "alertText": banner], replyHandler: nil, errorHandler: nil)
     }
     
     func syncWatchData() {
@@ -182,7 +227,10 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             self.syncDataToDisplay()
         }
     }
+    
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
+    
     func sessionDidBecomeInactive(_ session: WCSession) {}
+    
     func sessionDidDeactivate(_ session: WCSession) {}
 }
