@@ -4,6 +4,7 @@ import CoreBluetooth
 struct ContentView: View {
     @StateObject var ble = AdvancedBLEManager()
     @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
+    @State private var newBoardName = ""
     
     func getOrdinalLabel(p: Int, total: Int) -> String {
         let formatter = NumberFormatter()
@@ -41,6 +42,19 @@ struct ContentView: View {
                                     Image(systemName: "clock.badge.checkmark").foregroundColor(.purple)
                                     Text("Unit Name:").font(.subheadline).bold()
                                     TextField("e.g. Period, Cuarto, Tiempo", text: $ble.periodLabelText).textFieldStyle(.roundedBorder).font(.subheadline)
+                                }
+                                HStack {
+                                    Image(systemName: "pencil.circle").foregroundColor(.orange)
+                                    Text("Board Name:").font(.subheadline).bold()
+                                    TextField(ble.connectedPeripheral?.name ?? "Scoreboard", text: $newBoardName)
+                                        .textFieldStyle(.roundedBorder).font(.subheadline)
+                                        .onChange(of: newBoardName) { ble.renameStatus = "" }
+                                    Button("Rename") { ble.renameDevice(to: newBoardName) }
+                                        .buttonStyle(.bordered)
+                                        .disabled(newBoardName.trimmingCharacters(in: .whitespaces).isEmpty)
+                                }
+                                if !ble.renameStatus.isEmpty {
+                                    Text(ble.renameStatus).font(.caption2).foregroundColor(.secondary)
                                 }
                                 Divider()
                                 HStack(spacing: 12) {

@@ -21,6 +21,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var homeName = "HOME"
     @Published var awayName = "AWAY"
     @Published var periodLabelText = "Period"
+    @Published var renameStatus = ""
     
     // Visual Banner Alert State publishers
     @Published var alertBannerTitle = ""
@@ -28,11 +29,18 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     private var centralManager: CBCentralManager!
     private var targetCharacteristic: CBCharacteristic?
+    private var configCharacteristic: CBCharacteristic?
     private var nativeClockTimer: Timer? = nil
     private var wasIntentionalDisconnect = false
     
     let serviceUUID = CBUUID(string: "12345678-1234-1234-1234-123456789012")
     let charUUID    = CBUUID(string: "87654321-4321-4321-4321-210987654321")
+    // CONFIG characteristic: [cmd, args...] writes, [cmd, status] notifications (status 0 = OK).
+    // Keep in sync with scoreboard_BT_ESP32S3.ino.
+    let configUUID  = CBUUID(string: "87654321-4321-4321-4321-210987654322")
+    private let cmdSetName: UInt8 = 0x01
+    private let cmdApply: UInt8 = 0x02
+    static let deviceNameMaxLength = 20
     
     override init() {
         super.init()
@@ -122,6 +130,40 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         syncWatchData()
     }
     
+    // MARK: - Board rename (CONFIG characteristic)
+    /// Stages the new name on the board; the board confirms by notification, then we send apply (board reboots).
+    func renameDevice(to newName: String) {
+        let trimmed = newName.trimmingCharacters(in: .whitespaces)
+        let isPrintableASCII = trimmed.utf8.allSatisfy { $0 >= 0x20 && $0 <= 0x7E }
+        guard let peripheral = connectedPeripheral, let config = configCharacteristic else {
+            renameStatus = "Board not ready for renaming (firmware update needed?)"
+            return
+        }
+        guard !trimmed.isEmpty, trimmed.utf8.count <= Self.deviceNameMaxLength, isPrintableASCII else {
+            renameStatus = "Name must be 1-\(Self.deviceNameMaxLength) plain characters"
+            return
+        }
+        renameStatus = "Renaming..."
+        peripheral.writeValue(Data([cmdSetName]) + Data(trimmed.utf8), for: config, type: .withResponse)
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        guard characteristic.uuid == configUUID, let data = characteristic.value, data.count >= 2 else { return }
+        let cmd = data[0], status = data[1]
+        DispatchQueue.main.async {
+            switch (cmd, status) {
+            case (self.cmdSetName, 0):
+                if let config = self.configCharacteristic {
+                    peripheral.writeValue(Data([self.cmdApply]), for: config, type: .withResponse)
+                }
+            case (self.cmdApply, 0):
+                self.renameStatus = "Renamed. The board is restarting..."
+            default:
+                self.renameStatus = "Board rejected the rename (code \(status))"
+            }
+        }
+    }
+    
     // MARK: - Safe Interruption & Auto Reconnect Logic
     func connect(to peripheral: CBPeripheral) {
         wasIntentionalDisconnect = false // Clear tracking flag
@@ -150,15 +192,20 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         }
     }
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) { isConnected = true; peripheral.discoverServices([serviceUUID]) }
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) { guard let services = peripheral.services else { return }; for service in services { peripheral.discoverCharacteristics([charUUID], for: service) } }
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) { guard let services = peripheral.services else { return }; for service in services { peripheral.discoverCharacteristics([charUUID, configUUID], for: service) } }
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
+        for characteristic in characteristics where characteristic.uuid == configUUID {
+            configCharacteristic = characteristic
+            peripheral.setNotifyValue(true, for: characteristic)
+        }
         for characteristic in characteristics where characteristic.uuid == charUUID { targetCharacteristic = characteristic; syncDataToDisplay() }
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         isConnected = false
         targetCharacteristic = nil
+        configCharacteristic = nil
         
         if wasIntentionalDisconnect {
             connectedPeripheral = nil
