@@ -52,6 +52,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     override init() {
         super.init()
+        let savedMinutes = UserDefaults.standard.integer(forKey: "lastSavedMinutes")
+        if savedMinutes > 0 { timerMin = savedMinutes }
         centralManager = CBCentralManager(delegate: self, queue: nil)
         if WCSession.isSupported() {
             WCSession.default.delegate = self
@@ -63,6 +65,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         isTimerRunning.toggle()
         if isTimerRunning {
             triggerHapticAlert(type: .startEvent)
+            nativeClockTimer?.invalidate()
             nativeClockTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
                 self?.handleClockTick()
             }
@@ -220,6 +223,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         for characteristic in characteristics where characteristic.uuid == configUUID {
             configCharacteristic = characteristic
             peripheral.setNotifyValue(true, for: characteristic)
+            DispatchQueue.main.async { self.renameStatus = "" }
         }
         for characteristic in characteristics where characteristic.uuid == charUUID {
             targetCharacteristic = characteristic

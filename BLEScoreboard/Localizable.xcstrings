@@ -231,16 +231,6 @@
         }
       }
     },
-    "Disconnect Board Casing": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desconectar marcador"
-          }
-        }
-      }
-    },
     "%@ of %lld": {
       "localizations": {
         "es": {
@@ -357,6 +347,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "El firmware del marcador está desactualizado. Actualízalo para usar todas las funciones."
+          }
+        }
+      }
+    },
+    "Disconnect": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar"
           }
         }
       }

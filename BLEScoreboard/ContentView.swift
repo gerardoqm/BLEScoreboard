@@ -37,6 +37,7 @@ struct ContentView: View {
                                     Text("Match Configuration").font(.caption).bold().foregroundColor(.secondary)
                                     Spacer()
                                     Text("Linked").foregroundColor(.green).font(.caption2).bold()
+                                    Button("Disconnect") { ble.disconnect() }.font(.caption2).bold().foregroundColor(.red).buttonStyle(.bordered).controlSize(.mini).tint(.red)
                                 }
                                 if let battery = ble.batteryPercent {
                                     HStack {
@@ -104,6 +105,16 @@ struct ContentView: View {
                                 }.frame(maxWidth: .infinity).padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
                             }.padding(.horizontal)
                             
+                            VStack(spacing: 12) {
+                                Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) Countdown").font(.subheadline).foregroundColor(.secondary).bold()
+                                Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 40, weight: .bold, design: .monospaced))
+                                HStack(spacing: 15) {
+                                    Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
+                                    Button("Reset Clock") { ble.resetClockManual(minutes: lastSavedMinutes) }.buttonStyle(.bordered)
+                                    Stepper("Min", value: Binding(get: { ble.timerMin }, set: { newValue in ble.timerMin = newValue; lastSavedMinutes = newValue; ble.syncDataToDisplay() }), in: 1...90).labelsHidden()
+                                }
+                            }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
+                            
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
                                     Text("\(ble.periodLabelText):").font(.subheadline).bold()
@@ -124,20 +135,10 @@ struct ContentView: View {
                                 Slider(value: $ble.brightness, in: 10...120, step: 5) { _ in ble.syncDataToDisplay() }
                             }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
                             
-                            VStack(spacing: 12) {
-                                Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) Countdown").font(.subheadline).foregroundColor(.secondary).bold()
-                                Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 40, weight: .bold, design: .monospaced))
-                                HStack(spacing: 15) {
-                                    Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
-                                    Button("Reset Clock") { ble.resetClockManual(minutes: lastSavedMinutes) }.buttonStyle(.bordered)
-                                    Stepper("Min", value: Binding(get: { ble.timerMin }, set: { newValue in ble.timerMin = newValue; lastSavedMinutes = newValue; ble.syncDataToDisplay() }), in: 1...90).labelsHidden()
-                                }
-                            }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
                             
-                            Button("Disconnect Board Casing") { ble.disconnect() }.font(.footnote).foregroundColor(.red).padding(.top, 10)
                         }.padding(.top)
                     }
-                    .onAppear { ble.timerMin = lastSavedMinutes }
+                    .onChange(of: ble.isConnected) { newBoardName = "" }
                 }
             }
             
