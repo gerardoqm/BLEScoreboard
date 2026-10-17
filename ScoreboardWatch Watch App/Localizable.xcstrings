@@ -60,6 +60,16 @@
           }
         }
       }
+    },
+    "PER: %lld/%lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PER: %1$lld/%2$lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

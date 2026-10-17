@@ -1,10 +1,45 @@
 import SwiftUI
 import CoreBluetooth
 
+/// Pulsing radar rings shown while the app scans for scoreboards.
+struct ScanningRadarView: View {
+    @State private var pulse = false
+    
+    var body: some View {
+        ZStack {
+            ForEach(0..<3, id: \.self) { i in
+                Circle()
+                    .stroke(Color.green.opacity(0.7), lineWidth: 3)
+                    .frame(width: 140, height: 140)
+                    .scaleEffect(pulse ? 1.6 : 0.3)
+                    .opacity(pulse ? 0 : 0.9)
+                    .animation(.easeOut(duration: 2.4).repeatForever(autoreverses: false).delay(Double(i) * 0.8), value: pulse)
+            }
+            Image(systemName: "dot.radiowaves.left.and.right")
+                .font(.system(size: 34, weight: .semibold))
+                .foregroundColor(.green)
+        }
+        .frame(width: 220, height: 220)
+        .onAppear { pulse = true }
+        .accessibilityHidden(true)
+    }
+}
+
 struct ContentView: View {
     @StateObject var ble = AdvancedBLEManager()
     @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
     @State private var newBoardName = ""
+    @State private var showTutorial = ProcessInfo.processInfo.arguments.contains("-showTutorial")  // also used for screenshots
+    
+    private var hasBoards: Bool { !ble.discoveredDevices.isEmpty || !ble.demoBoardNames.isEmpty }
+    
+    private func boardRow(name: String, action: @escaping () -> Void) -> some View {
+        HStack {
+            Text(name).bold()
+            Spacer()
+            Button("Link Display", action: action).buttonStyle(.borderedProminent)
+        }
+    }
     
     func getOrdinalLabel(p: Int, total: Int) -> String {
         let formatter = NumberFormatter()
@@ -21,15 +56,51 @@ struct ContentView: View {
                     VStack {
                         Text("Select Your Scoreboard").font(.title2).bold().padding(.top)
                         Text("Select your board to avoid interference.").font(.caption).foregroundColor(.secondary)
-                        List(ble.discoveredDevices, id: \.identifier) { device in
-                            HStack {
-                                Text(device.name ?? String(localized: "Unnamed Scoreboard")).bold()
-                                Spacer()
-                                Button("Link Display") { ble.connect(to: device) }.buttonStyle(.borderedProminent)
+                        List {
+                            ForEach(ble.discoveredDevices, id: \.identifier) { device in
+                                boardRow(name: device.name ?? String(localized: "Unnamed Scoreboard")) { ble.connect(to: device) }
                             }
-                        }.refreshable { ble.startScanning() }
-                    }.navigationTitle("Radar Scanner")
+                            ForEach(ble.demoBoardNames, id: \.self) { name in
+                                boardRow(name: name) { }
+                            }
+                        }
+                        .refreshable { ble.startScanning() }
+                        .overlay {
+                            if !hasBoards {
+                                ScrollView {
+                                    VStack(spacing: 12) {
+                                        if ble.isBluetoothOn {
+                                            ScanningRadarView()
+                                            Text("Searching for scoreboards...").font(.headline)
+                                            Text("Make sure your scoreboard is powered on and nearby.")
+                                                .font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
+                                            LinkHelpCard { showTutorial = true }.padding(.top, 8)
+                                        } else {
+                                            Image(systemName: "bolt.horizontal.circle").font(.system(size: 44)).foregroundColor(.orange)
+                                            Text("Bluetooth is off. Turn it on to find scoreboards.")
+                                                .font(.subheadline).foregroundColor(.secondary).multilineTextAlignment(.center)
+                                        }
+                                    }.padding(.horizontal, 20).padding(.bottom, 20)
+                                }
+                                .background(Color(.systemGroupedBackground))
+                            }
+                        }
+                        if ble.isScanning && hasBoards {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                Text("Looking for more scoreboards...").font(.caption).foregroundColor(.secondary)
+                            }.padding(.vertical, 10)
+                        }
+                    }
+                    .navigationTitle("Find Scoreboards")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
+                                .accessibilityLabel(Text("Tutorial"))
+                        }
+                    }
                 } else {
+                    ScrollViewReader { proxy in
                     ScrollView {
                         VStack(spacing: 20) {
                             VStack(spacing: 12) {
@@ -37,6 +108,8 @@ struct ContentView: View {
                                     Text("Match Configuration").font(.caption).bold().foregroundColor(.secondary)
                                     Spacer()
                                     Text("Linked").foregroundColor(.green).font(.caption2).bold()
+                                    Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
+                                        .accessibilityLabel(Text("Tutorial"))
                                     Button("Disconnect") { ble.disconnect() }.font(.caption2).bold().foregroundColor(.red).buttonStyle(.bordered).controlSize(.mini).tint(.red)
                                 }
                                 if let battery = ble.batteryPercent {
@@ -134,14 +207,17 @@ struct ContentView: View {
                                 Text("LED Panel Brightness").font(.caption).bold()
                                 Slider(value: $ble.brightness, in: 10...120, step: 5) { _ in ble.syncDataToDisplay() }
                             }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
-                            
+                            .id("matchSettings")
                             
                         }.padding(.top)
                     }
+                    .onAppear { if ble.demoScrollToBottom { proxy.scrollTo("matchSettings", anchor: .bottom) } }
                     .onChange(of: ble.isConnected) { newBoardName = "" }
+                    }
                 }
             }
             
+            // Tutorial sheet is attached below on the ZStack
             // FIXED: NATIVE IPHONE VISUAL ALERT OVERLAY HUD DISPLAY
             if ble.showAlertBanner {
                 VStack {
@@ -161,5 +237,6 @@ struct ContentView: View {
                 .animation(.easeInOut, value: ble.showAlertBanner)
             }
         }
+        .sheet(isPresented: $showTutorial) { TutorialView() }
     }
 }

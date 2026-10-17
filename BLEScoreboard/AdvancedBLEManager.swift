@@ -8,6 +8,12 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var discoveredDevices: [CBPeripheral] = []
     @Published var connectedPeripheral: CBPeripheral? = nil
     @Published var isConnected = false
+    @Published var isScanning = false
+    /// Fake boards for screenshots (debug builds, `-demo list`). Always empty in release builds.
+    @Published var demoBoardNames: [String] = []
+    @Published var demoScrollToBottom = false
+    private var isDemo = false
+    @Published var isBluetoothOn = true
     
     // Core Parameters
     @Published var homeScore = 0
@@ -54,6 +60,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         super.init()
         let savedMinutes = UserDefaults.standard.integer(forKey: "lastSavedMinutes")
         if savedMinutes > 0 { timerMin = savedMinutes }
+        #if DEBUG
+        applyDemoModeIfRequested()
+        #endif
         centralManager = CBCentralManager(delegate: self, queue: nil)
         if WCSession.isSupported() {
             WCSession.default.delegate = self
@@ -193,6 +202,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     func connect(to peripheral: CBPeripheral) {
         wasIntentionalDisconnect = false // Clear tracking flag
         centralManager.stopScan()
+        isScanning = false
         connectedPeripheral = peripheral
         connectedPeripheral?.delegate = self
         centralManager.connect(peripheral, options: nil)
@@ -205,8 +215,18 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         }
     }
     
-    func centralManagerDidUpdateState(_ central: CBCentralManager) { if central.state == .poweredOn { startScanning() } }
-    func startScanning() { discoveredDevices.removeAll(); if centralManager.state == .poweredOn { centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil) } }
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        if isDemo { return }
+        isBluetoothOn = central.state == .poweredOn
+        if central.state == .poweredOn { startScanning() } else { isScanning = false }
+    }
+    func startScanning() {
+        discoveredDevices.removeAll()
+        if centralManager.state == .poweredOn {
+            isScanning = true
+            centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
+        }
+    }
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         if !discoveredDevices.contains(where: { $0.identifier == peripheral.identifier }) { discoveredDevices.append(peripheral) }
         
@@ -247,6 +267,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             // FIXED: Accidental signal dropout drop occurred - Keep clock ticking on iOS and scan to re-couple
             print("Scoreboard disconnected accidentally! Maintaining active session timers on screen...")
             if centralManager.state == .poweredOn {
+                isScanning = true
                 centralManager.scanForPeripherals(withServices: [serviceUUID], options: nil)
             }
         }
@@ -314,4 +335,30 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     func sessionDidBecomeInactive(_ session: WCSession) {}
     
     func sessionDidDeactivate(_ session: WCSession) {}
+
+    #if DEBUG
+    /// Screenshot support for the simulator (it has no Bluetooth). Launch with `-demo scanning|list|connected|connected-bottom`.
+    private func applyDemoModeIfRequested() {
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-demo"), i + 1 < args.count else { return }
+        isDemo = true
+        isBluetoothOn = true
+        switch args[i + 1] {
+        case "scanning":
+            isScanning = true
+        case "list":
+            isScanning = true
+            demoBoardNames = ["Scoreboard_Beta", "Court 2"]
+        default:
+            isConnected = true
+            homeName = "LION"; awayName = "BEAR"
+            homeScore = 12; awayScore = 9
+            period = 2; totalPeriods = 4
+            timerMin = 7; timerSec = 45
+            periodLabelText = String(localized: "Period")
+            batteryPercent = 82; boardProtocolVersion = Self.expectedProtocolVersion; telemetryReceived = true
+            demoScrollToBottom = args[i + 1] == "connected-bottom"
+        }
+    }
+    #endif
 }
