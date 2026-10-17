@@ -64,8 +64,8 @@ struct TutorialView: View {
              text: "Choose the period, the number of periods and the panel brightness. Rename the period unit (Quarter, Half, Tiempo) and the board from the top card.",
              image: "tutorial-4-setup", icon: "slider.horizontal.3"),
         Page(title: "5. Apple Watch and alerts",
-             text: "The Watch app adds points, changes the period and starts or pauses the clock from your wrist. You get a banner and a tap when a period starts and when the match ends.",
-             image: nil, icon: "applewatch")
+             text: "The Watch app lets you add or subtract points, change the period and start or pause the clock from your wrist. It follows your phone, so both always show the same score. You get a banner and a tap when a period starts and when the match ends.",
+             image: "tutorial-5-watch", icon: "applewatch")
     ]
 
     /// "es" when the phone is set to Spanish, otherwise English.

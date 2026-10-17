@@ -4,6 +4,10 @@ import CoreBluetooth
 /// Pulsing radar rings shown while the app scans for scoreboards.
 struct ScanningRadarView: View {
     @State private var pulse = false
+    /// `-staticRadar` freezes the rings in an evenly spaced pose, used for tutorial screenshots.
+    private let frozen = ProcessInfo.processInfo.arguments.contains("-staticRadar")
+    private let frozenScale: [CGFloat] = [0.55, 0.95, 1.35]
+    private let frozenOpacity: [Double] = [0.9, 0.55, 0.25]
     
     var body: some View {
         ZStack {
@@ -11,16 +15,16 @@ struct ScanningRadarView: View {
                 Circle()
                     .stroke(Color.green.opacity(0.7), lineWidth: 3)
                     .frame(width: 140, height: 140)
-                    .scaleEffect(pulse ? 1.6 : 0.3)
-                    .opacity(pulse ? 0 : 0.9)
-                    .animation(.easeOut(duration: 2.4).repeatForever(autoreverses: false).delay(Double(i) * 0.8), value: pulse)
+                    .scaleEffect(frozen ? frozenScale[i] : (pulse ? 1.6 : 0.3))
+                    .opacity(frozen ? frozenOpacity[i] : (pulse ? 0 : 0.9))
+                    .animation(frozen ? nil : .easeOut(duration: 2.4).repeatForever(autoreverses: false).delay(Double(i) * 0.8), value: pulse)
             }
             Image(systemName: "dot.radiowaves.left.and.right")
                 .font(.system(size: 34, weight: .semibold))
                 .foregroundColor(.green)
         }
         .frame(width: 220, height: 220)
-        .onAppear { pulse = true }
+        .onAppear { if !frozen { pulse = true } }
         .accessibilityHidden(true)
     }
 }

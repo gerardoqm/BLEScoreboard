@@ -128,6 +128,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     }
     
     func syncDataToDisplay() {
+        syncWatchData()  // the watch follows the phone even when no board is linked
         guard let peripheral = connectedPeripheral, let characteristic = targetCharacteristic else { return }
         
         var packet = Data([
@@ -151,7 +152,6 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         if let textData = stringPayload.data(using: .utf8) { packet.append(textData) }
         
         peripheral.writeValue(packet, for: characteristic, type: .withResponse)
-        syncWatchData()
     }
     
     // MARK: - Board rename (CONFIG characteristic)

@@ -32,7 +32,9 @@ Choose the current period, the total number of periods and the panel brightness.
 
 ## 5. Apple Watch and alerts
 
-The Watch app adds points, changes the period and starts or pauses the clock from your wrist. A banner and a tap on your phone and watch announce when a period starts and when the match ends.
+The Watch app lets you add or subtract points (− and + for each team), change the period and start or pause the clock from your wrist. It follows your phone, so both always show the same score. A banner and a tap on your phone and watch announce when a period starts and when the match ends.
+
+<img src="images/5-watch-en.png" width="200" alt="Apple Watch remote">
 
 ## Troubleshooting
 

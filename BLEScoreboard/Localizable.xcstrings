@@ -611,12 +611,12 @@
         }
       }
     },
-    "The Watch app adds points, changes the period and starts or pauses the clock from your wrist. You get a banner and a tap when a period starts and when the match ends.": {
+    "The Watch app lets you add or subtract points, change the period and start or pause the clock from your wrist. It follows your phone, so both always show the same score. You get a banner and a tap when a period starts and when the match ends.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La app del Watch suma puntos, cambia el periodo e inicia o pausa el reloj desde tu muñeca. Recibes un aviso y un toque cuando empieza un periodo y cuando termina el partido."
+            "value": "La app del Watch te permite sumar o restar puntos, cambiar el periodo e iniciar o pausar el reloj desde tu muñeca. Sigue a tu teléfono, así que ambos muestran siempre el mismo marcador. Recibes un aviso y un toque cuando empieza un periodo y cuando termina el partido."
           }
         }
       }

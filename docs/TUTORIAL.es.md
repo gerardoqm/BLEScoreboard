@@ -32,7 +32,9 @@ Elige el periodo actual, el total de periodos y el brillo del panel. En la tarje
 
 ## 5. Apple Watch y alertas
 
-La app del Watch suma puntos, cambia el periodo e inicia o pausa el reloj desde tu muñeca. Un aviso y un toque en tu teléfono y tu reloj indican cuándo empieza un periodo y cuándo termina el partido.
+La app del Watch te permite sumar o restar puntos (− y + para cada equipo), cambiar el periodo e iniciar o pausar el reloj desde tu muñeca. Sigue a tu teléfono, así que ambos muestran siempre el mismo marcador. Un aviso y un toque en tu teléfono y tu reloj indican cuándo empieza un periodo y cuándo termina el partido.
+
+<img src="images/5-watch-es.png" width="200" alt="Control remoto en Apple Watch">
 
 ## Solución de problemas
 
