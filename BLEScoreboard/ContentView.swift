@@ -1,16 +1,56 @@
 import SwiftUI
 import CoreBluetooth
 
+/// Pulsing radar rings shown while the app scans for scoreboards.
+struct ScanningRadarView: View {
+    @State private var pulse = false
+    /// `-staticRadar` freezes the rings in an evenly spaced pose, used for tutorial screenshots.
+    private let frozen = ProcessInfo.processInfo.arguments.contains("-staticRadar")
+    private let frozenScale: [CGFloat] = [0.55, 0.95, 1.35]
+    private let frozenOpacity: [Double] = [0.9, 0.55, 0.25]
+    
+    var body: some View {
+        ZStack {
+            ForEach(0..<3, id: \.self) { i in
+                Circle()
+                    .stroke(Color.green.opacity(0.7), lineWidth: 3)
+                    .frame(width: 140, height: 140)
+                    .scaleEffect(frozen ? frozenScale[i] : (pulse ? 1.6 : 0.3))
+                    .opacity(frozen ? frozenOpacity[i] : (pulse ? 0 : 0.9))
+                    .animation(frozen ? nil : .easeOut(duration: 2.4).repeatForever(autoreverses: false).delay(Double(i) * 0.8), value: pulse)
+            }
+            Image(systemName: "dot.radiowaves.left.and.right")
+                .font(.system(size: 34, weight: .semibold))
+                .foregroundColor(.green)
+        }
+        .frame(width: 220, height: 220)
+        .onAppear { if !frozen { pulse = true } }
+        .accessibilityHidden(true)
+    }
+}
+
 struct ContentView: View {
     @StateObject var ble = AdvancedBLEManager()
     @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
+    @State private var newBoardName = ""
+    @State private var showTutorial = ProcessInfo.processInfo.arguments.contains("-showTutorial")  // also used for screenshots
+    
+    private var hasBoards: Bool { !ble.discoveredDevices.isEmpty || !ble.demoBoardNames.isEmpty }
+    
+    private func boardRow(name: String, action: @escaping () -> Void) -> some View {
+        HStack {
+            Text(name).bold()
+            Spacer()
+            Button("Link Display", action: action).buttonStyle(.borderedProminent)
+        }
+    }
     
     func getOrdinalLabel(p: Int, total: Int) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .ordinal
         formatter.locale = Locale.current
         let ordinalStr = formatter.string(from: NSNumber(value: p)) ?? "\(p)"
-        return "\(ordinalStr) of \(total)"
+        return String(localized: "\(ordinalStr) of \(total)")
     }
     
     var body: some View {
@@ -20,15 +60,51 @@ struct ContentView: View {
                     VStack {
                         Text("Select Your Scoreboard").font(.title2).bold().padding(.top)
                         Text("Select your board to avoid interference.").font(.caption).foregroundColor(.secondary)
-                        List(ble.discoveredDevices, id: \.identifier) { device in
-                            HStack {
-                                Text(device.name ?? "Unnamed Scoreboard").bold()
-                                Spacer()
-                                Button("Link Display") { ble.connect(to: device) }.buttonStyle(.borderedProminent)
+                        List {
+                            ForEach(ble.discoveredDevices, id: \.identifier) { device in
+                                boardRow(name: device.name ?? String(localized: "Unnamed Scoreboard")) { ble.connect(to: device) }
                             }
-                        }.refreshable { ble.startScanning() }
-                    }.navigationTitle("Radar Scanner")
+                            ForEach(ble.demoBoardNames, id: \.self) { name in
+                                boardRow(name: name) { }
+                            }
+                        }
+                        .refreshable { ble.startScanning() }
+                        .overlay {
+                            if !hasBoards {
+                                ScrollView {
+                                    VStack(spacing: 12) {
+                                        if ble.isBluetoothOn {
+                                            ScanningRadarView()
+                                            Text("Searching for scoreboards...").font(.headline)
+                                            Text("Make sure your scoreboard is powered on and nearby.")
+                                                .font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
+                                            LinkHelpCard { showTutorial = true }.padding(.top, 8)
+                                        } else {
+                                            Image(systemName: "bolt.horizontal.circle").font(.system(size: 44)).foregroundColor(.orange)
+                                            Text("Bluetooth is off. Turn it on to find scoreboards.")
+                                                .font(.subheadline).foregroundColor(.secondary).multilineTextAlignment(.center)
+                                        }
+                                    }.padding(.horizontal, 20).padding(.bottom, 20)
+                                }
+                                .background(Color(.systemGroupedBackground))
+                            }
+                        }
+                        if ble.isScanning && hasBoards {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                Text("Looking for more scoreboards...").font(.caption).foregroundColor(.secondary)
+                            }.padding(.vertical, 10)
+                        }
+                    }
+                    .navigationTitle("Find Scoreboards")
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
+                                .accessibilityLabel(Text("Tutorial"))
+                        }
+                    }
                 } else {
+                    ScrollViewReader { proxy in
                     ScrollView {
                         VStack(spacing: 20) {
                             VStack(spacing: 12) {
@@ -36,11 +112,40 @@ struct ContentView: View {
                                     Text("Match Configuration").font(.caption).bold().foregroundColor(.secondary)
                                     Spacer()
                                     Text("Linked").foregroundColor(.green).font(.caption2).bold()
+                                    Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
+                                        .accessibilityLabel(Text("Tutorial"))
+                                    Button("Disconnect") { ble.disconnect() }.font(.caption2).bold().foregroundColor(.red).buttonStyle(.bordered).controlSize(.mini).tint(.red)
+                                }
+                                if let battery = ble.batteryPercent {
+                                    HStack {
+                                        Image(systemName: battery < 15 ? "battery.0percent" : (battery < 50 ? "battery.50percent" : "battery.100percent"))
+                                            .foregroundColor(battery < 15 ? .red : (battery < 50 ? .orange : .green))
+                                        Text("Battery \(battery)%").font(.caption).bold()
+                                            .foregroundColor(battery < 15 ? .red : (battery < 50 ? .orange : .green))
+                                        Spacer()
+                                    }
+                                }
+                                if ble.boardFirmwareOutdated {
+                                    Label("Board firmware is outdated. Update it to use all features.", systemImage: "exclamationmark.triangle.fill")
+                                        .font(.caption2).foregroundColor(.orange)
                                 }
                                 HStack {
                                     Image(systemName: "clock.badge.checkmark").foregroundColor(.purple)
                                     Text("Unit Name:").font(.subheadline).bold()
                                     TextField("e.g. Period, Cuarto, Tiempo", text: $ble.periodLabelText).textFieldStyle(.roundedBorder).font(.subheadline)
+                                }
+                                HStack {
+                                    Image(systemName: "pencil.circle").foregroundColor(.orange)
+                                    Text("Board Name:").font(.subheadline).bold()
+                                    TextField(ble.connectedPeripheral?.name ?? "Scoreboard", text: $newBoardName)
+                                        .textFieldStyle(.roundedBorder).font(.subheadline)
+                                        .onChange(of: newBoardName) { ble.renameStatus = "" }
+                                    Button("Rename") { ble.renameDevice(to: newBoardName) }
+                                        .buttonStyle(.bordered)
+                                        .disabled(newBoardName.trimmingCharacters(in: .whitespaces).isEmpty)
+                                }
+                                if !ble.renameStatus.isEmpty {
+                                    Text(ble.renameStatus).font(.caption2).foregroundColor(.secondary)
                                 }
                                 Divider()
                                 HStack(spacing: 12) {
@@ -65,17 +170,27 @@ struct ContentView: View {
                             
                             HStack(spacing: 20) {
                                 VStack {
-                                    Text(ble.homeName.isEmpty ? "HOME" : ble.homeName.uppercased()).bold().foregroundColor(.blue).lineLimit(1)
+                                    Text(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName.uppercased()).bold().foregroundColor(.blue).lineLimit(1)
                                     Text("\(ble.homeScore)").font(.system(size: 55, weight: .black, design: .monospaced))
                                     Stepper("", value: $ble.homeScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
                                 }.frame(maxWidth: .infinity).padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
                                 
                                 VStack {
-                                    Text(ble.awayName.isEmpty ? "AWAY" : ble.awayName.uppercased()).bold().foregroundColor(.red).lineLimit(1)
+                                    Text(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName.uppercased()).bold().foregroundColor(.red).lineLimit(1)
                                     Text("\(ble.awayScore)").font(.system(size: 55, weight: .black, design: .monospaced))
                                     Stepper("", value: $ble.awayScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
                                 }.frame(maxWidth: .infinity).padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
                             }.padding(.horizontal)
+                            
+                            VStack(spacing: 12) {
+                                Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) Countdown").font(.subheadline).foregroundColor(.secondary).bold()
+                                Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 40, weight: .bold, design: .monospaced))
+                                HStack(spacing: 15) {
+                                    Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
+                                    Button("Reset Clock") { ble.resetClockManual(minutes: lastSavedMinutes) }.buttonStyle(.bordered)
+                                    Stepper("Min", value: Binding(get: { ble.timerMin }, set: { newValue in ble.timerMin = newValue; lastSavedMinutes = newValue; ble.syncDataToDisplay() }), in: 1...90).labelsHidden()
+                                }
+                            }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
                             
                             VStack(alignment: .leading, spacing: 12) {
                                 HStack {
@@ -96,24 +211,17 @@ struct ContentView: View {
                                 Text("LED Panel Brightness").font(.caption).bold()
                                 Slider(value: $ble.brightness, in: 10...120, step: 5) { _ in ble.syncDataToDisplay() }
                             }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
+                            .id("matchSettings")
                             
-                            VStack(spacing: 12) {
-                                Text(getOrdinalLabel(p: ble.period, total: ble.totalPeriods) + " Countdown").font(.subheadline).foregroundColor(.secondary).bold()
-                                Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 40, weight: .bold, design: .monospaced))
-                                HStack(spacing: 15) {
-                                    Button(ble.isTimerRunning ? "Pause" : "Start") { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
-                                    Button("Reset Clock") { ble.resetClockManual(minutes: lastSavedMinutes) }.buttonStyle(.bordered)
-                                    Stepper("Min", value: Binding(get: { ble.timerMin }, set: { newValue in ble.timerMin = newValue; lastSavedMinutes = newValue; ble.syncDataToDisplay() }), in: 1...90).labelsHidden()
-                                }
-                            }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
-                            
-                            Button("Disconnect Board Casing") { ble.disconnect() }.font(.footnote).foregroundColor(.red).padding(.top, 10)
                         }.padding(.top)
                     }
-                    .onAppear { ble.timerMin = lastSavedMinutes }
+                    .onAppear { if ble.demoScrollToBottom { proxy.scrollTo("matchSettings", anchor: .bottom) } }
+                    .onChange(of: ble.isConnected) { newBoardName = "" }
+                    }
                 }
             }
             
+            // Tutorial sheet is attached below on the ZStack
             // FIXED: NATIVE IPHONE VISUAL ALERT OVERLAY HUD DISPLAY
             if ble.showAlertBanner {
                 VStack {
@@ -133,5 +241,6 @@ struct ContentView: View {
                 .animation(.easeInOut, value: ble.showAlertBanner)
             }
         }
+        .sheet(isPresented: $showTutorial) { TutorialView() }
     }
 }

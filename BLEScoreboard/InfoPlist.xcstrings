@@ -1,0 +1,16 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSBluetoothAlwaysUsageDescription": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se conecta a tu marcador LED para enviar los puntos y el reloj del partido."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,626 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Select Your Scoreboard": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona tu marcador"
+          }
+        }
+      }
+    },
+    "Select your board to avoid interference.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona tu marcador para evitar interferencias."
+          }
+        }
+      }
+    },
+    "Unnamed Scoreboard": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcador sin nombre"
+          }
+        }
+      }
+    },
+    "Link Display": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincular marcador"
+          }
+        }
+      }
+    },
+    "Match Configuration": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración del partido"
+          }
+        }
+      }
+    },
+    "Linked": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vinculado"
+          }
+        }
+      }
+    },
+    "Unit Name:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del periodo:"
+          }
+        }
+      }
+    },
+    "e.g. Period, Cuarto, Tiempo": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ej. Periodo, Cuarto, Tiempo"
+          }
+        }
+      }
+    },
+    "Board Name:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre del marcador:"
+          }
+        }
+      }
+    },
+    "Rename": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiar"
+          }
+        }
+      }
+    },
+    "Home Team": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipo local"
+          }
+        }
+      }
+    },
+    "Away Team": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Equipo visitante"
+          }
+        }
+      }
+    },
+    "REDS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ROJOS"
+          }
+        }
+      }
+    },
+    "BLUES": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AZULES"
+          }
+        }
+      }
+    },
+    "%@ %@ Match": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partido: %2$@ %1$@"
+          }
+        }
+      }
+    },
+    "HOME": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LOCAL"
+          }
+        }
+      }
+    },
+    "AWAY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VISITA"
+          }
+        }
+      }
+    },
+    "LED Panel Brightness": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brillo del panel LED"
+          }
+        }
+      }
+    },
+    "%@ Countdown": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta regresiva: %@"
+          }
+        }
+      }
+    },
+    "Pause": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausar"
+          }
+        }
+      }
+    },
+    "Start": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar"
+          }
+        }
+      }
+    },
+    "Reset Clock": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reiniciar reloj"
+          }
+        }
+      }
+    },
+    "%@ of %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ de %2$lld"
+          }
+        }
+      }
+    },
+    "▶️ Game Started!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "▶️ ¡Partido iniciado!"
+          }
+        }
+      }
+    },
+    "⏰ %@ %@ Starting!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⏰ ¡Comienza %1$@ %2$@!"
+          }
+        }
+      }
+    },
+    "🏁 Full Match Complete!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏁 ¡Partido terminado!"
+          }
+        }
+      }
+    },
+    "Board not ready for renaming (firmware update needed?)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El marcador no está listo para renombrarse (¿falta actualizar el firmware?)"
+          }
+        }
+      }
+    },
+    "Name must be 1-%lld plain characters": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El nombre debe tener de 1 a %lld caracteres sin acentos"
+          }
+        }
+      }
+    },
+    "Renaming...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renombrando..."
+          }
+        }
+      }
+    },
+    "Renamed. The board is restarting...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo. El marcador se está reiniciando..."
+          }
+        }
+      }
+    },
+    "Board rejected the rename (code %lld)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El marcador rechazó el nombre (código %lld)"
+          }
+        }
+      }
+    },
+    "Period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periodo"
+          }
+        }
+      }
+    },
+    "Battery %lld%%": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batería %lld%%"
+          }
+        }
+      }
+    },
+    "Board firmware is outdated. Update it to use all features.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El firmware del marcador está desactualizado. Actualízalo para usar todas las funciones."
+          }
+        }
+      }
+    },
+    "Disconnect": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar"
+          }
+        }
+      }
+    },
+    "Searching for scoreboards...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando marcadores..."
+          }
+        }
+      }
+    },
+    "Make sure your scoreboard is powered on and nearby.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asegúrate de que tu marcador esté encendido y cerca."
+          }
+        }
+      }
+    },
+    "Looking for more scoreboards...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscando más marcadores..."
+          }
+        }
+      }
+    },
+    "Bluetooth is off. Turn it on to find scoreboards.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El Bluetooth está apagado. Actívalo para encontrar marcadores."
+          }
+        }
+      }
+    },
+    "Find Scoreboards": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar marcadores"
+          }
+        }
+      }
+    },
+    "Min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Min"
+          }
+        }
+      }
+    },
+    "Total:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total:"
+          }
+        }
+      }
+    },
+    "VS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VS"
+          }
+        }
+      }
+    },
+    "Power on your scoreboard. Its LED blinks blue while it waits for your phone.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enciende tu marcador. Su LED parpadea en azul mientras espera a tu teléfono."
+          }
+        }
+      }
+    },
+    "Keep your phone close and Bluetooth on. Your board appears in this list.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantén tu teléfono cerca y el Bluetooth activado. Tu marcador aparecerá en esta lista."
+          }
+        }
+      }
+    },
+    "Tap Link Display. The LED turns solid green when you are connected.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca Vincular marcador. El LED se pone verde fijo cuando estás conectado."
+          }
+        }
+      }
+    },
+    "If the link drops, the clock keeps running on your phone and the board relinks by itself.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si se pierde la conexión, el reloj sigue corriendo en tu teléfono y el marcador se vuelve a vincular solo."
+          }
+        }
+      }
+    },
+    "How to link your scoreboard": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cómo vincular tu marcador"
+          }
+        }
+      }
+    },
+    "Step %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paso %lld"
+          }
+        }
+      }
+    },
+    "See the full tutorial": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver el tutorial completo"
+          }
+        }
+      }
+    },
+    "Tutorial": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutorial"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        }
+      }
+    },
+    "1. Find your scoreboard": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. Encuentra tu marcador"
+          }
+        }
+      }
+    },
+    "Power on the board and open the app. The radar searches for nearby scoreboards. The board's LED blinks blue while it waits.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enciende el marcador y abre la app. El radar busca marcadores cercanos. El LED del marcador parpadea en azul mientras espera."
+          }
+        }
+      }
+    },
+    "2. Link it": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. Vincúlalo"
+          }
+        }
+      }
+    },
+    "Tap Link Display next to your board. At a venue with several courts, pick the name of your own board. The LED turns solid green.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca Vincular marcador junto a tu marcador. Si hay varias canchas, elige el nombre de tu propio marcador. El LED se pone verde fijo."
+          }
+        }
+      }
+    },
+    "3. Run the game": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3. Dirige el partido"
+          }
+        }
+      }
+    },
+    "Use the steppers for the score and Start, Pause and Reset for the clock. The timer runs on your phone, so the game keeps going if the link drops.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa los botones + y − para el marcador, e Iniciar, Pausar y Reiniciar para el reloj. El tiempo corre en tu teléfono, así que el partido continúa aunque se pierda la conexión."
+          }
+        }
+      }
+    },
+    "4. Set up the match": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "4. Configura el partido"
+          }
+        }
+      }
+    },
+    "Choose the period, the number of periods and the panel brightness. Rename the period unit (Quarter, Half, Tiempo) and the board from the top card.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige el periodo, el número de periodos y el brillo del panel. Cambia el nombre del periodo (Cuarto, Mitad, Tiempo) y del marcador en la tarjeta superior."
+          }
+        }
+      }
+    },
+    "5. Apple Watch and alerts": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5. Apple Watch y alertas"
+          }
+        }
+      }
+    },
+    "The Watch app lets you add or subtract points, change the period and start or pause the clock from your wrist. It follows your phone, so both always show the same score. You get a banner and a tap when a period starts and when the match ends.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La app del Watch te permite sumar o restar puntos, cambiar el periodo e iniciar o pausar el reloj desde tu muñeca. Sigue a tu teléfono, así que ambos muestran siempre el mismo marcador. Recibes un aviso y un toque cuando empieza un periodo y cuando termina el partido."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
