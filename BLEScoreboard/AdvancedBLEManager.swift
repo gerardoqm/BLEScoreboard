@@ -28,13 +28,17 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var awayName = String(localized: "AWAY")
     @Published var periodLabelText = String(localized: "Period")
     @Published var renameStatus = ""
+    @Published var panelColors: [PanelElement: RGB] = PanelColorStore.load()
+    private var colorSendWork: DispatchWorkItem?
     
     // Board telemetry (notification on the main characteristic)
     @Published var batteryPercent: Int? = nil
     @Published var boardProtocolVersion: Int? = nil
     @Published var telemetryReceived = false
     /// Telemetry layout version this app expects. Keep in sync with PROTOCOL_VERSION in scoreboard_BT_ESP32S3.ino.
-    static let expectedProtocolVersion = 2
+    static let expectedProtocolVersion = 3
+    /// Colors need protocol 3. Unknown until the board's first telemetry arrives, so never warn before that.
+    var boardLacksColorSupport: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < 3 }
     var boardFirmwareOutdated: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < Self.expectedProtocolVersion }
     
     // Visual Banner Alert State publishers
@@ -54,6 +58,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     let configUUID  = CBUUID(string: "87654321-4321-4321-4321-210987654322")
     private let cmdSetName: UInt8 = 0x01
     private let cmdApply: UInt8 = 0x02
+    private let cmdColors: UInt8 = 0x03   // [0x03] + 9 x RGB565 big-endian, in PanelElement order
+    private let cmdAlert: UInt8 = 0x04    // [0x04, type (1 game start, 2 period start)] + 1-16 ASCII characters
     static let deviceNameMaxLength = 20
     
     override init() {
@@ -74,6 +80,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         isTimerRunning.toggle()
         if isTimerRunning {
             triggerHapticAlert(type: .startEvent)
+            announceStartOnPanel()
             nativeClockTimer?.invalidate()
             nativeClockTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
                 self?.handleClockTick()
@@ -154,6 +161,63 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         peripheral.writeValue(packet, for: characteristic, type: .withResponse)
     }
     
+    // MARK: - Panel colors (CONFIG characteristic)
+    func setColor(_ rgb: RGB, for element: PanelElement) {
+        panelColors[element] = rgb
+        PanelColorStore.save(panelColors)
+        scheduleColorSend()
+    }
+    
+    func resetColors() {
+        panelColors = PanelColorStore.defaults
+        PanelColorStore.save(panelColors)
+        sendColors()
+    }
+    
+    /// A color picker drag produces many changes; send once it settles.
+    private func scheduleColorSend() {
+        colorSendWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in self?.sendColors() }
+        colorSendWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: work)
+    }
+    
+    // MARK: - Panel alerts
+    /// Text for the panel's start alerts: ASCII only, capitals, at most 16 characters.
+    func panelAlertText(_ kind: PanelAlertKind) -> String {
+        let text: String
+        switch kind {
+        case .gameStart: text = String(localized: "GAME START")
+        case .periodStart(let number): text = String(localized: "PERIOD \(number)")
+        }
+        return String(panelSafe(text).uppercased().prefix(16))
+    }
+    
+    /// Tells the board to scroll the alert across the panel. Does nothing when no board is linked.
+    func sendPanelAlert(_ kind: PanelAlertKind) {
+        guard let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
+        var type: UInt8 = 1
+        if case .periodStart = kind { type = 2 }
+        peripheral.writeValue(Data([cmdAlert, type]) + Data(panelAlertText(kind).utf8), for: config, type: .withResponse)
+    }
+    
+    /// A game or period starts when the clock starts from the full period length; resuming after a pause does not alert.
+    private func announceStartOnPanel() {
+        let saved = UserDefaults.standard.integer(forKey: "lastSavedMinutes")
+        guard timerMin == (saved > 0 ? saved : 10), timerSec == 0 else { return }
+        sendPanelAlert(period == 1 ? .gameStart : .periodStart(period))
+    }
+    
+    func sendColors() {
+        guard let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
+        var data = Data([cmdColors])
+        for element in PanelElement.allCases {
+            let value = (panelColors[element] ?? element.defaultColor).rgb565
+            data.append(UInt8(value >> 8)); data.append(UInt8(value & 0xFF))
+        }
+        peripheral.writeValue(data, for: config, type: .withResponse)
+    }
+    
     // MARK: - Board rename (CONFIG characteristic)
     /// Stages the new name on the board; the board confirms by notification, then we send apply (board reboots).
     func renameDevice(to newName: String) {
@@ -190,6 +254,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 if let config = self.configCharacteristic {
                     peripheral.writeValue(Data([self.cmdApply]), for: config, type: .withResponse)
                 }
+            case (self.cmdColors, _), (self.cmdAlert, _):
+                break   // colors need no feedback; boards without protocol 3 are reported by the version check
             case (self.cmdApply, 0):
                 self.renameStatus = String(localized: "Renamed. The board is restarting...")
             default:
@@ -243,7 +309,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         for characteristic in characteristics where characteristic.uuid == configUUID {
             configCharacteristic = characteristic
             peripheral.setNotifyValue(true, for: characteristic)
-            DispatchQueue.main.async { self.renameStatus = "" }
+            DispatchQueue.main.async { self.renameStatus = ""; self.sendColors() }
         }
         for characteristic in characteristics where characteristic.uuid == charUUID {
             targetCharacteristic = characteristic
@@ -361,4 +427,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         }
     }
     #endif
+}
+
+enum PanelAlertKind {
+    case gameStart
+    case periodStart(Int)
 }

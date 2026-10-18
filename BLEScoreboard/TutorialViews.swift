@@ -63,9 +63,15 @@ struct TutorialView: View {
         Page(title: "4. Set up the match",
              text: "Choose the period, the number of periods and the panel brightness. Rename the period unit (Quarter, Half, Tiempo) and the board from the top card.",
              image: "tutorial-4-setup", icon: "slider.horizontal.3"),
-        Page(title: "5. Apple Watch and alerts",
+        Page(title: "5. Choose panel colors",
+             text: "Tap Panel Colors in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts. The preview shows the panel as you choose, and the board remembers your colors.",
+             image: "tutorial-5-colors", icon: "paintpalette"),
+        Page(title: "6. Start alerts",
+             text: "When a game or a period starts, the panel flashes its border and scrolls a message across it in the color you chose. Use the play buttons on the colors page to try the alerts in the preview and on your board.",
+             image: "tutorial-6-alerts", icon: "play.circle"),
+        Page(title: "7. Apple Watch and alerts",
              text: "The Watch app lets you add or subtract points, change the period and start or pause the clock from your wrist. It follows your phone, so both always show the same score. You get a banner and a tap when a period starts and when the match ends.",
-             image: "tutorial-5-watch", icon: "applewatch")
+             image: "tutorial-7-watch", icon: "applewatch")
     ]
 
     /// "es" when the phone is set to Spanish, otherwise English.

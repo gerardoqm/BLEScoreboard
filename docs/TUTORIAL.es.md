@@ -30,11 +30,25 @@ Elige el periodo actual, el total de periodos y el brillo del panel. En la tarje
 
 <img src="images/4-setup-es.png" width="280" alt="Periodo, total de periodos y brillo">
 
-## 5. Apple Watch y alertas
+## 5. Elige los colores del panel
+
+Toca **Colores del panel** en la tarjeta superior. Elige el color del reloj (en marcha y detenido), el periodo, el nombre y los puntos de cada equipo, y las dos alertas de inicio, con las muestras o con cualquier color del selector. La vista previa de arriba muestra el panel mientras eliges. El marcador guarda los colores y la app los envía de nuevo cada vez que te conectas. **Restablecer colores** vuelve a los predeterminados.
+
+<img src="images/5-colors-es.png" width="280" alt="Página de colores del panel con vista previa en vivo">
+
+## 6. Alertas de inicio
+
+Cuando empieza un partido (periodo 1) o un periodo posterior, el panel hace parpadear su borde y desplaza `INICIO PARTIDO` o `PERIODO 2` por la pantalla a triple tamaño, en el color de la alerta, y luego vuelve al marcador. La alerta suena cuando el reloj arranca desde la duración completa del periodo; al reanudar tras una pausa no se repite. En la página de colores, **Probar alerta de inicio** y **Probar alerta de periodo** las prueban en la vista previa y en tu marcador.
+
+<img src="images/6-alerts-es.png" width="280" alt="Una alerta de inicio reproduciéndose en la vista previa del panel">
+
+<img src="images/alert-game-start.gif" width="420" alt="Animación de la alerta de inicio del partido en el panel"> <img src="images/alert-period-start.gif" width="420" alt="Animación de la alerta de inicio de periodo en el panel">
+
+## 7. Apple Watch y alertas
 
 La app del Watch te permite sumar o restar puntos (− y + para cada equipo), cambiar el periodo e iniciar o pausar el reloj desde tu muñeca. Sigue a tu teléfono, así que ambos muestran siempre el mismo marcador. Un aviso y un toque en tu teléfono y tu reloj indican cuándo empieza un periodo y cuándo termina el partido.
 
-<img src="images/5-watch-es.png" width="200" alt="Control remoto en Apple Watch">
+<img src="images/7-watch-es.png" width="200" alt="Control remoto en Apple Watch">
 
 ## Solución de problemas
 
@@ -43,4 +57,5 @@ La app del Watch te permite sumar o restar puntos (− y + para cada equipo), ca
 | El marcador no aparece | Revisa que esté encendido y su LED parpadee en azul, que el Bluetooth esté activado, y desliza la lista hacia abajo para buscar de nuevo. |
 | "El firmware del marcador está desactualizado" | Carga el firmware más reciente del repositorio `scoreboard_BT_ESP32S3` (por USB, o por Wi-Fi con la dirección IP). |
 | El LED parpadea en cian | Se perdió la conexión. El marcador espera 30 segundos al mismo teléfono y luego se reinicia y vuelve a azul. |
+| Los colores o las alertas no hacen nada en el panel | El marcador necesita el firmware más reciente (versión de protocolo 3). La página de colores muestra un aviso cuando es anterior. |
 | Cambiar el nombre no hace nada | El marcador necesita el firmware actual; la línea de estado bajo el campo indica el motivo. |

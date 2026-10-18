@@ -601,22 +601,252 @@
         }
       }
     },
-    "5. Apple Watch and alerts": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "5. Apple Watch y alertas"
-          }
-        }
-      }
-    },
     "The Watch app lets you add or subtract points, change the period and start or pause the clock from your wrist. It follows your phone, so both always show the same score. You get a banner and a tap when a period starts and when the match ends.": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "La app del Watch te permite sumar o restar puntos, cambiar el periodo e iniciar o pausar el reloj desde tu muñeca. Sigue a tu teléfono, así que ambos muestran siempre el mismo marcador. Recibes un aviso y un toque cuando empieza un periodo y cuando termina el partido."
+          }
+        }
+      }
+    },
+    "Panel Colors": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Colores del panel"
+          }
+        }
+      }
+    },
+    "Timer (running)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reloj (en marcha)"
+          }
+        }
+      }
+    },
+    "Timer (stopped)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reloj (detenido)"
+          }
+        }
+      }
+    },
+    "Home name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre local"
+          }
+        }
+      }
+    },
+    "Home score": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puntos local"
+          }
+        }
+      }
+    },
+    "Away name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre visitante"
+          }
+        }
+      }
+    },
+    "Away score": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puntos visitante"
+          }
+        }
+      }
+    },
+    "Preview with the clock running": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa con el reloj en marcha"
+          }
+        }
+      }
+    },
+    "Reset colors": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer colores"
+          }
+        }
+      }
+    },
+    "Update the board firmware to change colors.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualiza el firmware del marcador para cambiar los colores."
+          }
+        }
+      }
+    },
+    "Colors are saved on the board and sent again each time you connect.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los colores se guardan en el marcador y se envían de nuevo cada vez que te conectas."
+          }
+        }
+      }
+    },
+    "Panel preview": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa del panel"
+          }
+        }
+      }
+    },
+    "GAME START": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INICIO PARTIDO"
+          }
+        }
+      }
+    },
+    "PERIOD %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PERIODO %lld"
+          }
+        }
+      }
+    },
+    "Game start alert": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerta de inicio del partido"
+          }
+        }
+      }
+    },
+    "Period start alert": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alerta de inicio de periodo"
+          }
+        }
+      }
+    },
+    "Play game start alert": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probar alerta de inicio"
+          }
+        }
+      }
+    },
+    "Play period start alert": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probar alerta de periodo"
+          }
+        }
+      }
+    },
+    "Alerts also play on the board when it is linked.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las alertas también se reproducen en el marcador cuando está vinculado."
+          }
+        }
+      }
+    },
+    "5. Choose panel colors": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5. Elige los colores del panel"
+          }
+        }
+      }
+    },
+    "Tap Panel Colors in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts. The preview shows the panel as you choose, and the board remembers your colors.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca Colores del panel en la tarjeta superior. Elige el color del reloj (en marcha y detenido), el periodo, el nombre y los puntos de cada equipo, y las dos alertas de inicio. La vista previa muestra el panel mientras eliges, y el marcador recuerda tus colores."
+          }
+        }
+      }
+    },
+    "6. Start alerts": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6. Alertas de inicio"
+          }
+        }
+      }
+    },
+    "When a game or a period starts, the panel flashes its border and scrolls a message across it in the color you chose. Use the play buttons on the colors page to try the alerts in the preview and on your board.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando empieza un partido o un periodo, el panel hace parpadear su borde y desplaza un mensaje por la pantalla en el color que elegiste. Usa los botones de reproducir de la página de colores para probar las alertas en la vista previa y en tu marcador."
+          }
+        }
+      }
+    },
+    "7. Apple Watch and alerts": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7. Apple Watch y alertas"
           }
         }
       }

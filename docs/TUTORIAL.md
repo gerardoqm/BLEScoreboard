@@ -30,11 +30,25 @@ Choose the current period, the total number of periods and the panel brightness.
 
 <img src="images/4-setup-en.png" width="280" alt="Period, total periods and brightness">
 
-## 5. Apple Watch and alerts
+## 5. Choose panel colors
+
+Tap **Panel Colors** in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts, using the swatches or any color from the color picker. The preview at the top shows the panel as you choose. The board saves the colors, and the app sends them again every time you connect. **Reset colors** goes back to the defaults.
+
+<img src="images/5-colors-en.png" width="280" alt="Panel Colors page with a live panel preview">
+
+## 6. Start alerts
+
+When a game starts (period 1) or a later period starts, the panel flashes its border and scrolls `GAME START` or `PERIOD 2` across the screen at triple size, in the alert's color, then returns to the scoreboard. The alert plays when the clock starts from the full period length; resuming after a pause does not repeat it. On the colors page, **Play game start alert** and **Play period start alert** try them in the preview and on your board.
+
+<img src="images/6-alerts-en.png" width="280" alt="A start alert playing in the panel preview">
+
+<img src="images/alert-game-start.gif" width="420" alt="Animation of the game start alert on the panel"> <img src="images/alert-period-start.gif" width="420" alt="Animation of the period start alert on the panel">
+
+## 7. Apple Watch and alerts
 
 The Watch app lets you add or subtract points (− and + for each team), change the period and start or pause the clock from your wrist. It follows your phone, so both always show the same score. A banner and a tap on your phone and watch announce when a period starts and when the match ends.
 
-<img src="images/5-watch-en.png" width="200" alt="Apple Watch remote">
+<img src="images/7-watch-en.png" width="200" alt="Apple Watch remote">
 
 ## Troubleshooting
 
@@ -43,4 +57,5 @@ The Watch app lets you add or subtract points (− and + for each team), change 
 | The board does not appear | Check that it is powered and its LED blinks blue, that Bluetooth is on, and pull down on the list to rescan. |
 | "Board firmware is outdated" | Flash the latest firmware from the `scoreboard_BT_ESP32S3` repository (USB, or Wi-Fi by IP address). |
 | The LED blinks cyan | The link dropped. The board waits 30 seconds for the same phone, then resets and goes back to blue. |
+| Colors or alerts do nothing on the panel | The board needs the latest firmware (protocol version 3). The colors page shows a warning when it is older. |
 | Rename does nothing | The board needs current firmware; the status line under the field shows why. |
