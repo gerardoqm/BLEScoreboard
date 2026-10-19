@@ -850,6 +850,136 @@
           }
         }
       }
+    },
+    "Try the simulated board": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probar el marcador simulado"
+          }
+        }
+      }
+    },
+    "Simulated board": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcador simulado"
+          }
+        }
+      }
+    },
+    "Simulator": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulador"
+          }
+        }
+      }
+    },
+    "Exit simulator": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir del simulador"
+          }
+        }
+      }
+    },
+    "Board in sync": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcador sincronizado"
+          }
+        }
+      }
+    },
+    "Board is catching up": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El marcador se está poniendo al día"
+          }
+        }
+      }
+    },
+    "Simulation only. No board is linked.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo simulación. No hay marcador vinculado."
+          }
+        }
+      }
+    },
+    "Waiting for the board": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperando al marcador"
+          }
+        }
+      }
+    },
+    "Next period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente periodo"
+          }
+        }
+      }
+    },
+    "Minus": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos"
+          }
+        }
+      }
+    },
+    "Plus": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más"
+          }
+        }
+      }
+    },
+    "8. Try the simulated board": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "8. Prueba el marcador simulado"
+          }
+        }
+      }
+    },
+    "No board at hand? Tap Try the simulated board on the Find Scoreboards screen. At the bottom of the match screen, a simulated panel shows what the real board shows: scores, clock, period, names, your colors and the start alerts. Control it from the phone or the Watch. With a real board linked it mirrors the board and shows whether the two are in sync.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿No tienes un marcador a la mano? Toca Probar el marcador simulado en la pantalla Buscar marcadores. Al final de la pantalla del partido, un panel simulado muestra lo mismo que el marcador real: puntos, reloj, periodo, nombres, tus colores y las alertas de inicio. Contrólalo desde el teléfono o el Watch. Con un marcador real vinculado lo refleja y muestra si los dos están sincronizados."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

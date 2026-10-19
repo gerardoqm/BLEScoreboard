@@ -71,7 +71,10 @@ struct TutorialView: View {
              image: "tutorial-6-alerts", icon: "play.circle"),
         Page(title: "7. Apple Watch and alerts",
              text: "The Watch app lets you add or subtract points, change the period and start or pause the clock from your wrist. It follows your phone, so both always show the same score. You get a banner and a tap when a period starts and when the match ends.",
-             image: "tutorial-7-watch", icon: "applewatch")
+             image: "tutorial-7-watch", icon: "applewatch"),
+        Page(title: "8. Try the simulated board",
+             text: "No board at hand? Tap Try the simulated board on the Find Scoreboards screen. At the bottom of the match screen, a simulated panel shows what the real board shows: scores, clock, period, names, your colors and the start alerts. Control it from the phone or the Watch. With a real board linked it mirrors the board and shows whether the two are in sync.",
+             image: "tutorial-8-simulator", icon: "display")
     ]
 
     /// "es" when the phone is set to Spanish, otherwise English.

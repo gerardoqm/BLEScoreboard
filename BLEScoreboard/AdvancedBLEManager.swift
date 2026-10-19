@@ -29,6 +29,12 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var periodLabelText = String(localized: "Period")
     @Published var renameStatus = ""
     @Published var panelColors: [PanelElement: RGB] = PanelColorStore.load()
+    /// Match screen without a physical board: the simulated panel is the only display.
+    @Published var isSimulating = false
+    /// The alert currently playing on the simulated panel (the board plays the same one).
+    @Published var panelAlertPlayback: AlertPlayback?
+    /// The board's own clock, from its telemetry, used to show whether it is in sync with the app.
+    @Published var boardClock: BoardClock?
     private var colorSendWork: DispatchWorkItem?
     
     // Board telemetry (notification on the main characteristic)
@@ -195,6 +201,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     /// Tells the board to scroll the alert across the panel. Does nothing when no board is linked.
     func sendPanelAlert(_ kind: PanelAlertKind) {
+        var element = PanelElement.alertGame
+        if case .periodStart = kind { element = .alertPeriod }
+        panelAlertPlayback = AlertPlayback(text: panelAlertText(kind), color: panelColors[element] ?? element.defaultColor, start: Date())
         guard let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
         var type: UInt8 = 1
         if case .periodStart = kind { type = 2 }
@@ -207,6 +216,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         guard timerMin == (saved > 0 ? saved : 10), timerSec == 0 else { return }
         sendPanelAlert(period == 1 ? .gameStart : .periodStart(period))
     }
+    
+    /// How the panel shows a name: ASCII capitals, up to 20 characters.
+    func panelText(_ text: String) -> String { String(panelSafe(text).uppercased().prefix(20)) }
     
     func sendColors() {
         guard let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
@@ -239,7 +251,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         if characteristic.uuid == charUUID, let data = characteristic.value, data.count >= 5 {
             // [min, sec, running, period, battery%] (+ [flags, protocolVersion] from protocol v2)
             let battery = Int(data[4]), version = data.count >= 7 ? Int(data[6]) : 1
+            let clock = BoardClock(minutes: Int(data[0]), seconds: Int(data[1]), running: data[2] == 1, period: Int(data[3]), receivedAt: Date())
             DispatchQueue.main.async {
+                self.boardClock = clock
                 self.batteryPercent = min(battery, 100)
                 self.boardProtocolVersion = version
                 self.telemetryReceived = true
@@ -266,6 +280,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     // MARK: - Safe Interruption & Auto Reconnect Logic
     func connect(to peripheral: CBPeripheral) {
+        isSimulating = false
         wasIntentionalDisconnect = false // Clear tracking flag
         centralManager.stopScan()
         isScanning = false
@@ -274,7 +289,10 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         centralManager.connect(peripheral, options: nil)
     }
     
+    func startSimulation() { isSimulating = true }
+    
     func disconnect() {
+        if isSimulating { isSimulating = false; return }   // leaving the simulated board
         wasIntentionalDisconnect = true // Lock tracking flag
         if let peripheral = connectedPeripheral {
             centralManager.cancelPeripheralConnection(peripheral)
@@ -323,6 +341,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         targetCharacteristic = nil
         configCharacteristic = nil
         batteryPercent = nil
+        boardClock = nil
         boardProtocolVersion = nil
         telemetryReceived = false
         
@@ -412,6 +431,16 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         switch args[i + 1] {
         case "scanning":
             isScanning = true
+        case "simulate", "simulate-alert":
+            isSimulating = true
+            if args[i + 1] == "simulate-alert" {
+                panelAlertPlayback = AlertPlayback(text: panelAlertText(.gameStart), color: (panelColors[.alertGame] ?? PanelElement.alertGame.defaultColor), start: Date(), frozenAt: 1.1)
+            }
+            homeName = "LION"; awayName = "BEAR"
+            homeScore = 12; awayScore = 9
+            period = 2; totalPeriods = 4
+            timerMin = 7; timerSec = 45
+            periodLabelText = String(localized: "Period")
         case "list":
             isScanning = true
             demoBoardNames = ["Scoreboard_Beta", "Court 2"]
@@ -432,4 +461,19 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
 enum PanelAlertKind {
     case gameStart
     case periodStart(Int)
+}
+
+/// The clock the board reports in its telemetry, with the time it was received.
+struct BoardClock {
+    let minutes: Int
+    let seconds: Int
+    let running: Bool
+    let period: Int
+    let receivedAt: Date
+    
+    /// What the board's clock reads now, assuming it kept counting since the report.
+    func seconds(at now: Date) -> Int {
+        let reported = minutes * 60 + seconds
+        return running ? max(0, reported - Int(now.timeIntervalSince(receivedAt))) : reported
+    }
 }

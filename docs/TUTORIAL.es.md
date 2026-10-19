@@ -50,6 +50,14 @@ La app del Watch te permite sumar o restar puntos (− y + para cada equipo), ca
 
 <img src="images/7-watch-es.png" width="200" alt="Control remoto en Apple Watch">
 
+## 8. Prueba el marcador simulado
+
+¿No tienes un marcador a la mano, o quieres ver un partido completo? En la pantalla Buscar marcadores toca **Probar el marcador simulado**. La pantalla del partido funciona igual. Al final, un panel simulado muestra lo mismo que el marcador real: puntos, reloj, periodo, nombres de los equipos (que se desplazan si no caben), tus colores y las alertas de inicio. Debajo hay botones de puntos, periodo e inicio/pausa, y el Apple Watch también lo controla.
+
+Cuando hay un marcador real vinculado, el panel simulado es la vista previa en vivo de ese marcador: el marcador refleja la app y una línea de estado muestra **Marcador sincronizado** cuando el reloj del propio marcador coincide. **Salir del simulador** (tarjeta superior) vuelve a la lista de marcadores.
+
+<img src="images/8-simulator-button-es.png" width="240" alt="El botón Probar el marcador simulado"> <img src="images/8-simulator-es.png" width="240" alt="El marcador simulado al final de la pantalla del partido">
+
 ## Solución de problemas
 
 | Problema | Qué probar |

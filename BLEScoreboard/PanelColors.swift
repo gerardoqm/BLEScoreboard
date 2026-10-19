@@ -174,6 +174,53 @@ struct PanelFrame {
 }
 
 extension PanelFrame {
+    /// Draws the frame as an LED matrix: lit pixels in their color, unlit ones as dark dots.
+    func draw(in context: GraphicsContext, size: CGSize) {
+        let pitch = size.width / CGFloat(Self.width)
+        let dot = pitch * 0.82
+        for y in 0..<Self.height {
+            for x in 0..<Self.width {
+                let rect = CGRect(x: CGFloat(x) * pitch + (pitch - dot) / 2, y: CGFloat(y) * pitch + (pitch - dot) / 2, width: dot, height: dot)
+                context.fill(Path(ellipseIn: rect), with: .color(pixels[y * Self.width + x]?.color ?? Color(white: 0.1)))
+            }
+        }
+    }
+    
+    /// Scroll position of a name that does not fit its slot: pause at the start, then 70 ms per pixel, like the firmware.
+    static func marqueeOffset(textUnits: Int, time: TimeInterval) -> Int {
+        let width = textUnits * 2
+        guard width > 36 else { return 0 }
+        let dwell = 1.5, step = 0.07, travel = Double(width + 18) * step
+        let phase = time.truncatingRemainder(dividingBy: dwell + travel)
+        return phase < dwell ? 0 : Int((phase - dwell) / step)
+    }
+    
+    /// The scoreboard with the real match state: the same layout the firmware draws.
+    static func live(homeName: String, awayName: String, homeScore: Int, awayScore: Int, period: Int, totalPeriods: Int,
+                     minutes: Int, seconds: Int, running: Bool, colors: [PanelElement: RGB], time: TimeInterval) -> PanelFrame {
+        func c(_ e: PanelElement) -> RGB { colors[e] ?? e.defaultColor }
+        var f = PanelFrame()
+        f.text(String(format: "%02d:%02d", minutes, seconds), x: 2, y: 1, scale: 2, color: c(running ? .timerRunning : .timerStopped))
+        let periodText = "\(period)/\(totalPeriods)"
+        f.text(periodText, x: 78 - LEDFont.units(periodText) * 2, y: 1, scale: 2, color: c(.period))
+        for j in 0..<26 { f.set(40, 12 + j, RGB(40, 40, 40)) }
+        for (value, center, element) in [(homeScore, 20, PanelElement.homeScore), (awayScore, 60, .awayScore)] {
+            let text = String(value)
+            f.text(text, x: center - LEDFont.units(text) * 3 / 2, y: 13, scale: 3, color: c(element))
+        }
+        for (name, slotX, element) in [(homeName, 2, PanelElement.homeName), (awayName, 42, .awayName)] {
+            let units = LEDFont.units(name), width = units * 2, clip = slotX..<(slotX + 36)
+            if width <= 36 {
+                f.text(name, x: slotX + (36 - width) / 2, y: 29, scale: 2, color: c(element), clipX: clip)
+            } else {
+                let offset = marqueeOffset(textUnits: units, time: time)
+                f.text(name, x: slotX - offset, y: 29, scale: 2, color: c(element), clipX: clip)
+                f.text(name, x: slotX - offset + width + 18, y: 29, scale: 2, color: c(element), clipX: clip)
+            }
+        }
+        return f
+    }
+    
     /// Same timing as the firmware: text scrolls right to left at 3x (18 ms per pixel) while a 2 pixel border flashes at 2 Hz.
     static func alertDuration(text: String) -> Double { Double((width + LEDFont.units(text) * 3) * 18 + 400) / 1000 }
     
@@ -210,15 +257,7 @@ struct LEDPanelPreview: View {
                 PanelFrame.alert(text: a.text, color: a.color, elapsed: a.frozenAt ?? timeline.date.timeIntervalSince(a.start))
             }
             let frame = playing ?? PanelFrame.sample(colors: colors, clockRunning: clockRunning)
-            let pitch = size.width / CGFloat(PanelFrame.width)
-            let dot = pitch * 0.82
-            for y in 0..<PanelFrame.height {
-                for x in 0..<PanelFrame.width {
-                    let rect = CGRect(x: CGFloat(x) * pitch + (pitch - dot) / 2, y: CGFloat(y) * pitch + (pitch - dot) / 2, width: dot, height: dot)
-                    let lit = frame.pixels[y * PanelFrame.width + x]
-                    context.fill(Path(ellipseIn: rect), with: .color(lit?.color ?? Color(white: 0.1)))
-                }
-            }
+            frame.draw(in: context, size: size)
         }
         }
         .aspectRatio(2, contentMode: .fit)
@@ -326,5 +365,106 @@ struct PanelColorsView: View {
         }
         .navigationTitle("Panel Colors")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// The simulated board: an LED panel driven by the app's real match state, so it shows what the physical board shows.
+struct LiveBoardPreview: View {
+    @ObservedObject var ble: AdvancedBLEManager
+    
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 20)) { timeline in
+            Canvas { context, size in
+                let alert = ble.panelAlertPlayback.flatMap {
+                    PanelFrame.alert(text: $0.text, color: $0.color, elapsed: $0.frozenAt ?? timeline.date.timeIntervalSince($0.start))
+                }
+                let frame = alert ?? PanelFrame.live(
+                    homeName: ble.panelText(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName),
+                    awayName: ble.panelText(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName),
+                    homeScore: ble.homeScore, awayScore: ble.awayScore, period: ble.period, totalPeriods: ble.totalPeriods,
+                    minutes: ble.timerMin, seconds: ble.timerSec, running: ble.isTimerRunning,
+                    colors: ble.panelColors, time: timeline.date.timeIntervalSinceReferenceDate)
+                frame.draw(in: context, size: size)
+            }
+        }
+        .aspectRatio(2, contentMode: .fit)
+        .background(Color.black)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .accessibilityLabel(Text("Simulated board"))
+    }
+}
+
+/// Card at the bottom of the match screen: the simulated board, a sync indicator and the match controls.
+struct SimulatedBoardCard: View {
+    @ObservedObject var ble: AdvancedBLEManager
+    @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
+    
+    private func change(_ value: inout Int, by delta: Int, max limit: Int = 99) {
+        value = min(max(value + delta, 0), limit)
+        ble.syncDataToDisplay()
+    }
+    
+    private func scoreButtons(_ title: LocalizedStringKey, color: Color, score: Binding<Int>) -> some View {
+        HStack(spacing: 6) {
+            Text(title).font(.caption2).bold().foregroundColor(color)
+            Button { score.wrappedValue = max(score.wrappedValue - 1, 0); ble.syncDataToDisplay() } label: { Image(systemName: "minus") }
+                .accessibilityLabel(Text("Minus"))
+            Button { score.wrappedValue = min(score.wrappedValue + 1, 99); ble.syncDataToDisplay() } label: { Image(systemName: "plus") }
+                .accessibilityLabel(Text("Plus"))
+        }
+        .buttonStyle(.bordered).controlSize(.small)
+    }
+    
+    /// Green when the real board's own clock matches the app's, so you can see the two are mirroring each other.
+    private var syncStatus: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { timeline in
+            HStack(spacing: 6) {
+                if ble.isConnected, let clock = ble.boardClock {
+                    let appSeconds = ble.timerMin * 60 + ble.timerSec
+                    let delta = abs(clock.seconds(at: timeline.date) - appSeconds)
+                    let inSync = delta <= 3 && clock.period == ble.period
+                    Circle().fill(inSync ? Color.green : Color.orange).frame(width: 8, height: 8)
+                    Text(inSync ? LocalizedStringKey("Board in sync") : LocalizedStringKey("Board is catching up")).font(.caption2)
+                } else {
+                    Circle().fill(Color.gray).frame(width: 8, height: 8)
+                    Text(ble.isSimulating ? LocalizedStringKey("Simulation only. No board is linked.") : LocalizedStringKey("Waiting for the board"))
+                        .font(.caption2)
+                }
+            }
+            .foregroundColor(.secondary)
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Simulated board").font(.caption).bold()
+                Spacer()
+                syncStatus
+            }
+            LiveBoardPreview(ble: ble)
+            HStack(spacing: 8) {
+                scoreButtons("HOME", color: .blue, score: $ble.homeScore)
+                Spacer(minLength: 0)
+                scoreButtons("AWAY", color: .red, score: $ble.awayScore)
+            }
+            HStack(spacing: 8) {
+                Button { ble.period = ble.period < ble.totalPeriods ? ble.period + 1 : 1; ble.syncDataToDisplay() } label: {
+                    Label("Next period", systemImage: "forward.end").lineLimit(1)
+                }
+                .buttonStyle(.bordered).controlSize(.small)
+                Spacer(minLength: 0)
+                Button { ble.toggleClock() } label: {
+                    Label(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start"), systemImage: ble.isTimerRunning ? "pause.fill" : "play.fill")
+                }
+                .buttonStyle(.borderedProminent).controlSize(.small).tint(ble.isTimerRunning ? .orange : .green)
+                Button { ble.resetClockManual(minutes: lastSavedMinutes) } label: { Image(systemName: "arrow.counterclockwise") }
+                    .accessibilityLabel(Text("Reset Clock"))
+                    .buttonStyle(.bordered).controlSize(.small)
+            }
+        }
+        .padding()
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
     }
 }

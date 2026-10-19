@@ -57,7 +57,7 @@ struct ContentView: View {
     var body: some View {
         ZStack { // Enclosed within ZStack to project overlays
             NavigationStack {
-                if !ble.isConnected {
+                if !(ble.isConnected || ble.isSimulating) {
                     VStack {
                         Text("Select Your Scoreboard").font(.title2).bold().padding(.top)
                         Text("Select your board to avoid interference.").font(.caption).foregroundColor(.secondary)
@@ -90,6 +90,8 @@ struct ContentView: View {
                                 .background(Color(.systemGroupedBackground))
                             }
                         }
+                        Button { ble.startSimulation() } label: { Label("Try the simulated board", systemImage: "display") }
+                            .buttonStyle(.bordered).padding(.vertical, 8)
                         if ble.isScanning && hasBoards {
                             HStack(spacing: 8) {
                                 ProgressView()
@@ -112,10 +114,10 @@ struct ContentView: View {
                                 HStack {
                                     Text("Match Configuration").font(.caption).bold().foregroundColor(.secondary)
                                     Spacer()
-                                    Text("Linked").foregroundColor(.green).font(.caption2).bold()
+                                    Text(LocalizedStringKey(ble.isSimulating ? "Simulator" : "Linked")).foregroundColor(ble.isSimulating ? .purple : .green).font(.caption2).bold()
                                     Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
                                         .accessibilityLabel(Text("Tutorial"))
-                                    Button("Disconnect") { ble.disconnect() }.font(.caption2).bold().foregroundColor(.red).buttonStyle(.bordered).controlSize(.mini).tint(.red)
+                                    Button(LocalizedStringKey(ble.isSimulating ? "Exit simulator" : "Disconnect")) { ble.disconnect() }.font(.caption2).bold().foregroundColor(.red).buttonStyle(.bordered).controlSize(.mini).tint(.red)
                                 }
                                 if let battery = ble.batteryPercent {
                                     HStack {
@@ -135,6 +137,7 @@ struct ContentView: View {
                                     Text("Unit Name:").font(.subheadline).bold()
                                     TextField("e.g. Period, Cuarto, Tiempo", text: $ble.periodLabelText).textFieldStyle(.roundedBorder).font(.subheadline)
                                 }
+                                if !ble.isSimulating {
                                 HStack {
                                     Image(systemName: "pencil.circle").foregroundColor(.orange)
                                     Text("Board Name:").font(.subheadline).bold()
@@ -147,6 +150,7 @@ struct ContentView: View {
                                 }
                                 if !ble.renameStatus.isEmpty {
                                     Text(ble.renameStatus).font(.caption2).foregroundColor(.secondary)
+                                }
                                 }
                                 Button { showColors = true } label: {
                                     HStack {
@@ -233,9 +237,14 @@ struct ContentView: View {
                             }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
                             .id("matchSettings")
                             
+                            SimulatedBoardCard(ble: ble).padding(.horizontal).id("boardPreview")
+                            
                         }.padding(.top)
                     }
-                    .onAppear { if ble.demoScrollToBottom { proxy.scrollTo("matchSettings", anchor: .bottom) } }
+                    .onAppear {
+                        if ble.demoScrollToBottom { proxy.scrollTo("matchSettings", anchor: .bottom) }
+                        if ProcessInfo.processInfo.arguments.contains("-scrollPreview") { proxy.scrollTo("boardPreview", anchor: .bottom) }  // screenshots
+                    }
                     .onChange(of: ble.isConnected) { newBoardName = "" }
                     .navigationDestination(isPresented: $showColors) { PanelColorsView(ble: ble) }
                     }
