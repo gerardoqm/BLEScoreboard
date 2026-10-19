@@ -32,7 +32,7 @@ Elige el periodo actual, el total de periodos y el brillo del panel. En la tarje
 
 ## 5. Elige los colores del panel
 
-Toca **Colores del panel** en la tarjeta superior. Elige el color del reloj (en marcha y detenido), el periodo, el nombre y los puntos de cada equipo, y las dos alertas de inicio, con las muestras o con cualquier color del selector. La vista previa de arriba muestra el panel mientras eliges. El marcador guarda los colores y la app los envía de nuevo cada vez que te conectas. **Restablecer colores** vuelve a los predeterminados.
+Toca **Colores del panel** en la tarjeta superior. Elige el color del reloj (en marcha y detenido), el periodo, el nombre y los puntos de cada equipo, y las dos alertas de inicio, con las muestras o con cualquier color del selector. La vista previa de arriba muestra el panel mientras eliges. El marcador guarda los colores y la app los envía de nuevo cada vez que te conectas. Usa el interruptor de una fila para **ocultar** ese elemento en el panel (el interruptor del reloj lo oculta tanto en marcha como detenido); una alerta apagada no se reproduce. La vista previa y el marcador simulado lo ocultan al instante. **Restablecer colores** vuelve a los colores predeterminados y deja los interruptores como están.
 
 <img src="images/5-colors-es.png" width="280" alt="Página de colores del panel con vista previa en vivo">
 
@@ -65,5 +65,5 @@ Cuando hay un marcador real vinculado, el panel simulado es la vista previa en v
 | El marcador no aparece | Revisa que esté encendido y su LED parpadee en azul, que el Bluetooth esté activado, y desliza la lista hacia abajo para buscar de nuevo. |
 | "El firmware del marcador está desactualizado" | Carga el firmware más reciente del repositorio `scoreboard_BT_ESP32S3` (por USB, o por Wi-Fi con la dirección IP). |
 | El LED parpadea en cian | Se perdió la conexión. El marcador espera 30 segundos al mismo teléfono y luego se reinicia y vuelve a azul. |
-| Los colores o las alertas no hacen nada en el panel | El marcador necesita el firmware más reciente (versión de protocolo 3). La página de colores muestra un aviso cuando es anterior. |
+| Los colores, las alertas o los elementos ocultos no hacen nada en el panel | El marcador necesita el firmware más reciente (versión de protocolo 4). La página de colores muestra un aviso cuando es anterior. |
 | Cambiar el nombre no hace nada | El marcador necesita el firmware actual; la línea de estado bajo el campo indica el motivo. |

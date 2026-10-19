@@ -64,7 +64,7 @@ struct TutorialView: View {
              text: "Choose the period, the number of periods and the panel brightness. Rename the period unit (Quarter, Half, Tiempo) and the board from the top card.",
              image: "tutorial-4-setup", icon: "slider.horizontal.3"),
         Page(title: "5. Choose panel colors",
-             text: "Tap Panel Colors in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts. The preview shows the panel as you choose, and the board remembers your colors.",
+             text: "Tap Panel Colors in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts. Use the switch on a row to hide that element on the panel; an alert you switch off does not play. The preview shows the panel as you choose, and the board remembers your choices.",
              image: "tutorial-5-colors", icon: "paintpalette"),
         Page(title: "6. Start alerts",
              text: "When a game or a period starts, the panel flashes its border and scrolls a message across it in the color you chose. Use the play buttons on the colors page to try the alerts in the preview and on your board.",
