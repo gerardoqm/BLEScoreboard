@@ -2,14 +2,38 @@ import SwiftUI
 import Combine
 import CoreBluetooth
 import CryptoKit
-import Security
 
-/// The firmware image that ships inside the app, with the versions it carries.
+/// A semantic version, `major.minor.patch`: patch for fixes, minor for compatible features, major for breaking changes.
+struct FirmwareVersion: Comparable, Equatable, CustomStringConvertible {
+    let major: Int, minor: Int, patch: Int
+    
+    init(_ major: Int, _ minor: Int, _ patch: Int) { self.major = major; self.minor = minor; self.patch = patch }
+    
+    init?(_ text: String) {
+        let parts = text.split(separator: ".").compactMap { Int($0) }
+        guard parts.count == 3 else { return nil }
+        self.init(parts[0], parts[1], parts[2])
+    }
+    
+    var description: String { "\(major).\(minor).\(patch)" }
+    
+    static func < (a: FirmwareVersion, b: FirmwareVersion) -> Bool { (a.major, a.minor, a.patch) < (b.major, b.minor, b.patch) }
+}
+
+/// The version of this app, from the project's version and build numbers.
+enum AppInfo {
+    static var version: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?" }
+    static var build: String { Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "?" }
+    static var summary: String { "\(version) (\(build))" }
+}
+
+/// The firmware image that ships inside the app, with its version.
 /// It is produced locally by tools/bundle-firmware.sh and is never committed: the image contains the Wi-Fi and update
-/// passwords from secrets.h.
+/// passwords from secrets.h, and firmware.json carries the update secret so the app can prove itself to the board
+/// without asking anyone for a password.
 struct BundledFirmware {
-    let protocolVersion: Int
-    let build: Int
+    let version: FirmwareVersion
+    let secret: String?
     let image: Data
     
     static func load() -> BundledFirmware? {
@@ -17,9 +41,9 @@ struct BundledFirmware {
               let jsonURL = Bundle.main.url(forResource: "firmware", withExtension: "json"),
               let image = try? Data(contentsOf: binURL),
               let jsonData = try? Data(contentsOf: jsonURL),
-              let info = (try? JSONSerialization.jsonObject(with: jsonData)) as? [String: Int],
-              let protocolVersion = info["protocol"], let build = info["build"] else { return nil }
-        return BundledFirmware(protocolVersion: protocolVersion, build: build, image: image)
+              let info = (try? JSONSerialization.jsonObject(with: jsonData)) as? [String: Any],
+              let versionText = info["version"] as? String, let version = FirmwareVersion(versionText) else { return nil }
+        return BundledFirmware(version: version, secret: info["secret"] as? String, image: image)
     }
 }
 
@@ -35,30 +59,6 @@ enum CRC32 {
         var crc: UInt32 = 0xFFFFFFFF
         for byte in data { crc = table[Int((crc ^ UInt32(byte)) & 0xFF)] ^ (crc >> 8) }
         return ~crc
-    }
-}
-
-/// Keeps the update password in the Keychain instead of plain preferences.
-enum KeychainStore {
-    private static func query(_ account: String) -> [String: Any] {
-        [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: "BLEScoreboard", kSecAttrAccount as String: account]
-    }
-    
-    static func load(_ account: String) -> String? {
-        var q = query(account)
-        q[kSecReturnData as String] = true
-        q[kSecMatchLimit as String] = kSecMatchLimitOne
-        var item: CFTypeRef?
-        guard SecItemCopyMatching(q as CFDictionary, &item) == errSecSuccess, let data = item as? Data else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-    
-    static func save(_ value: String, account: String) {
-        SecItemDelete(query(account) as CFDictionary)
-        guard !value.isEmpty else { return }
-        var q = query(account)
-        q[kSecValueData as String] = Data(value.utf8)
-        SecItemAdd(q as CFDictionary, nil)
     }
 }
 
@@ -84,11 +84,11 @@ final class FirmwareUpdater: ObservableObject {
     /// Set only by the screenshot demo.
     var demoSupported = false
     
+    private var secret = ""
     private var image = Data()
     private var offset = 0
     private var acked = 0
     private var endSent = false
-    private var password = ""
     private var lastProgress = Date()
     private var watchdog: Timer?
     private let window = 8192
@@ -112,9 +112,12 @@ final class FirmwareUpdater: ObservableObject {
         }
     }
     
-    func start(password: String) {
-        guard !isRunning, let bundled, peripheral != nil, characteristic != nil else { return }
-        self.password = password
+    /// Whether the bundled image can be sent: the app needs the image and the secret the board expects.
+    var canUpdate: Bool { bundled?.secret?.isEmpty == false && peripheral != nil && characteristic != nil }
+    
+    func start() {
+        guard !isRunning, let bundled, let secret = bundled.secret, !secret.isEmpty, peripheral != nil, characteristic != nil else { return }
+        self.secret = secret
         image = bundled.image
         offset = 0; acked = 0; endSent = false
         state = .authenticating
@@ -147,7 +150,7 @@ final class FirmwareUpdater: ObservableObject {
         case opBegin:
             guard status == 0, data.count >= 18 else { return fail(status: status) }
             let nonce = data.subdata(in: 2..<18)
-            let mac = HMAC<SHA256>.authenticationCode(for: nonce, using: SymmetricKey(data: Data(password.utf8)))
+            let mac = HMAC<SHA256>.authenticationCode(for: nonce, using: SymmetricKey(data: Data(secret.utf8)))
             send(Data([opAuth]) + Data(mac))
         case opAuth:
             guard status == 0 else { return fail(status: status) }
@@ -213,8 +216,8 @@ final class FirmwareUpdater: ObservableObject {
     private func fail(status: UInt8) {
         let message: String
         switch status {
-        case 3: message = String(localized: "Wrong update password.")
-        case 7: message = String(localized: "Too many wrong tries. Wait 30 seconds and try again.")
+        case 3: message = String(localized: "The board did not accept this app's update key. Rebuild the app with tools/bundle-firmware.sh after flashing the board.")
+        case 7: message = String(localized: "The board is locked for 30 seconds after failed tries. Wait and try again.")
         case 4: message = String(localized: "The firmware does not fit on the board.")
         case 5: message = String(localized: "The board could not write the firmware.")
         case 6: message = String(localized: "The firmware did not pass the board's check, so nothing was changed.")
@@ -234,16 +237,14 @@ final class FirmwareUpdater: ObservableObject {
 struct FirmwareUpdateView: View {
     @ObservedObject var ble: AdvancedBLEManager
     @ObservedObject var updater: FirmwareUpdater
-    @State private var password = KeychainStore.load("otaPassword") ?? ""
     
     private var boardVersion: String {
-        guard let protocolVersion = ble.boardProtocolVersion else { return String(localized: "Unknown") }
-        return ble.boardFirmwareBuild.map { String(localized: "Protocol \(protocolVersion), build \($0)") } ?? String(localized: "Protocol \(protocolVersion)")
+        if let version = ble.boardFirmwareVersion { return version.description }
+        return ble.telemetryReceived ? String(localized: "Older, no version number") : String(localized: "Unknown")
     }
     
-    private var appVersion: String {
-        guard let bundled = updater.bundled else { return String(localized: "No firmware in this app") }
-        return String(localized: "Protocol \(bundled.protocolVersion), build \(bundled.build)")
+    private var appFirmwareVersion: String {
+        updater.bundled.map { $0.version.description } ?? String(localized: "No firmware in this app")
     }
     
     private func versionRow(_ title: LocalizedStringKey, _ value: String) -> some View {
@@ -255,7 +256,7 @@ struct FirmwareUpdateView: View {
         case .idle:
             EmptyView()
         case .authenticating:
-            Label("Checking the password...", systemImage: "key")
+            Label("Connecting to the board...", systemImage: "key")
         case .preparing:
             Label("Preparing the board...", systemImage: "gearshape")
         case .sending(let fraction):
@@ -276,9 +277,11 @@ struct FirmwareUpdateView: View {
         ScrollView {
             VStack(spacing: 16) {
                 VStack(spacing: 10) {
-                    versionRow("On the board", boardVersion)
+                    versionRow("Firmware on the board", boardVersion)
                     Divider()
-                    versionRow("In this app", appVersion)
+                    versionRow("Firmware in this app", appFirmwareVersion)
+                    Divider()
+                    versionRow("App version", AppInfo.summary)
                     if ble.firmwareUpdateAvailable {
                         Label("A newer firmware is available for this board.", systemImage: "arrow.down.circle.fill")
                             .font(.footnote).foregroundColor(.blue).frame(maxWidth: .infinity, alignment: .leading)
@@ -293,16 +296,9 @@ struct FirmwareUpdateView: View {
                 if updater.bundled == nil {
                     Label("This copy of the app does not include a firmware image. Build it with tools/bundle-firmware.sh.", systemImage: "info.circle")
                         .font(.footnote).foregroundColor(.secondary).frame(maxWidth: .infinity, alignment: .leading)
-                }
-                
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Update password").font(.subheadline).bold()
-                    SecureField("Update password", text: $password)
-                        .textFieldStyle(.roundedBorder)
-                        .textContentType(.password)
-                        .onChange(of: password) { KeychainStore.save(password, account: "otaPassword") }
-                    Text("The same password you use for Wi-Fi and USB updates. It stays on this phone, in the Keychain, and is never sent over Bluetooth.")
-                        .font(.caption).foregroundColor(.secondary)
+                } else if updater.bundled?.secret?.isEmpty != false {
+                    Label("The firmware in this app has no update key. Rebuild it with tools/bundle-firmware.sh.", systemImage: "info.circle")
+                        .font(.footnote).foregroundColor(.secondary).frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
                 progress.frame(maxWidth: .infinity, alignment: .leading).font(.subheadline)
@@ -310,11 +306,11 @@ struct FirmwareUpdateView: View {
                 if updater.isRunning {
                     Button("Cancel", role: .destructive) { updater.cancel() }.buttonStyle(.bordered)
                 } else {
-                    Button { updater.resetMessage(); updater.start(password: password) } label: {
+                    Button { updater.resetMessage(); updater.start() } label: {
                         Text(ble.firmwareUpdateAvailable ? "Update board firmware" : "Reinstall board firmware").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(!ble.isConnected || !updater.isSupportedByBoard || updater.bundled == nil || password.isEmpty)
+                    .disabled(!ble.isConnected || !updater.isSupportedByBoard || !updater.canUpdate)
                 }
                 
                 Text("Keep the phone next to the board and this screen open. It takes one to three minutes, the panel shows a progress bar, and the board restarts when it is done. If anything goes wrong the board keeps its current firmware.")

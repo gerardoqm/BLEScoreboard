@@ -92,7 +92,8 @@ struct ContentView: View {
                             }
                         }
                         Button { ble.startSimulation() } label: { Label("Try the simulated board", systemImage: "display") }
-                            .buttonStyle(.bordered).padding(.vertical, 8)
+                            .buttonStyle(.bordered).padding(.top, 8)
+                        Text("BLEScoreboard \(AppInfo.summary)").font(.caption2).foregroundColor(.secondary).padding(.bottom, 8)
                         if ble.isScanning && hasBoards {
                             HStack(spacing: 8) {
                                 ProgressView()

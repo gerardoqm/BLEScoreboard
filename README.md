@@ -10,6 +10,7 @@ A native, low-latency iOS controller and watchOS extension built with **SwiftUI*
 - **Panel Colors:** The **Panel Colors** page (top card) sets the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts, with a live LED preview. A switch on each row hides that element on the panel (an alert switched off does not play). The board saves the colors and what is hidden, and the app resends them on every connection.
 - **Start Alerts:** When a game (period 1) or a later period starts from the full period length, the panel flashes its border and scrolls `GAME START` or `PERIOD n` across the screen in the alert's color. Play buttons on the colors page try them in the preview and on the board.
 - **Simulated Board:** A simulated panel at the bottom of the match screen shows the real match state: scores, clock, period, scrolling names, your colors and the start alerts, with its own score, period and start/pause buttons. **Try the simulated board** on the scanner screen runs it without a board; with a real board linked it mirrors the board and shows whether the two clocks are in sync. The Apple Watch controls it too.
+- **Board Firmware over Bluetooth:** The **Board Firmware** page (top card, when linked) shows the firmware version on the board, the version carried by the app and the app's own version, and updates the board from the phone with a progress bar on the panel. The app proves itself to the board with a key it carries, so there is no password to type; the image and key come from `tools/bundle-firmware.sh` and are git-ignored.
 - **Unified Master Clock Engine:** A centralized Swift background `Timer` manages the match clock countdown, eliminating data-stream collisions.
 - **Accidental Disconnect Protection:** If the scoreboard drops power or loses connection mid-game, the timer continues ticking cleanly on your phone/watch. When the board is back, the app reconnects and resends the live state.
 - **Live Hardware Telemetry:** Displays a color-coded battery percentage read from the scoreboard's resistor divider, and warns when the board's firmware is older than the app expects.
@@ -18,6 +19,12 @@ A native, low-latency iOS controller and watchOS extension built with **SwiftUI*
 ## 📖 Tutorial
 
 New to the app? Read the [tutorial](docs/TUTORIAL.md) ([en español](docs/TUTORIAL.es.md)) or tap the **?** button inside the app.
+
+## 🏷️ Versions
+
+The app has a version (`MARKETING_VERSION`, for example 1.0.0) and a build number (`CURRENT_PROJECT_VERSION`), shared by the iPhone and Apple Watch targets and shown on the Find Scoreboards screen and the Board Firmware page. Bump **patch** for fixes, **minor** for compatible features and **major** for breaking changes, and raise the build number for every build you install. The board firmware has its own version, kept in the firmware repository; the app offers an update when the firmware it carries is newer than the board's. See [CHANGELOG.md](CHANGELOG.md).
+
+Before building the app for a phone, run `tools/bundle-firmware.sh` to put the current firmware into `BLEScoreboard/Firmware/`. That folder contains your Wi-Fi and update passwords, so it is git-ignored: never commit it, and treat the built app as private.
 
 ## 🛠️ Xcode Deployment & Setup
 

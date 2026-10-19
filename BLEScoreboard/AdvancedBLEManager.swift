@@ -36,8 +36,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     /// The board's own clock, from its telemetry, used to show whether it is in sync with the app.
     @Published var boardClock: BoardClock?
     @Published var panelVisibility: [PanelElement: Bool] = PanelVisibilityStore.load()
-    /// Firmware build number reported by the board (protocol 5 and later).
-    @Published var boardFirmwareBuild: Int?
+    /// Firmware version reported by the board (nil on firmware that predates version numbers).
+    @Published var boardFirmwareVersion: FirmwareVersion?
     /// Sends the bundled firmware to the board over Bluetooth.
     let firmwareUpdater = FirmwareUpdater()
     /// Names as boards advertise them: fresher than CBPeripheral.name, which iOS caches (it can show the old name after a rename).
@@ -54,11 +54,11 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     static let expectedProtocolVersion = 5
     /// Colors need protocol 3. Unknown until the board's first telemetry arrives, so never warn before that.
     var boardLacksColorSupport: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < 3 }
-    /// True when the image inside the app is newer than what the board reports.
+    /// True when the image inside the app has a newer version than the board reports. A board that reports no version is older.
     var firmwareUpdateAvailable: Bool {
-        guard let bundled = firmwareUpdater.bundled, let boardProtocol = boardProtocolVersion else { return false }
-        if boardProtocol != bundled.protocolVersion { return boardProtocol < bundled.protocolVersion }
-        return (boardFirmwareBuild ?? 0) < bundled.build
+        guard let bundled = firmwareUpdater.bundled, telemetryReceived else { return false }
+        guard let boardVersion = boardFirmwareVersion else { return true }
+        return boardVersion < bundled.version
     }
     
     /// The name of the board linked to the phone, so the screen can say whether it is showing real hardware.
@@ -297,15 +297,15 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             return
         }
         if characteristic.uuid == charUUID, let data = characteristic.value, data.count >= 5 {
-            // [min, sec, running, period, battery%] (+ [flags, protocolVersion] from protocol v2)
+            // [min, sec, running, period, battery%] (+ [flags, protocolVersion] from protocol v2, + [major, minor, patch] firmware version from protocol v5)
             let battery = Int(data[4]), version = data.count >= 7 ? Int(data[6]) : 1
-            let build: Int? = data.count >= 8 ? Int(data[7]) : nil
+            let firmwareVersion: FirmwareVersion? = data.count >= 10 ? FirmwareVersion(Int(data[7]), Int(data[8]), Int(data[9])) : nil
             let clock = BoardClock(minutes: Int(data[0]), seconds: Int(data[1]), running: data[2] == 1, period: Int(data[3]), receivedAt: Date())
             DispatchQueue.main.async {
                 self.boardClock = clock
                 self.batteryPercent = min(battery, 100)
                 self.boardProtocolVersion = version
-                self.boardFirmwareBuild = build
+                self.boardFirmwareVersion = firmwareVersion
                 self.telemetryReceived = true
             }
             return
@@ -399,7 +399,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         targetCharacteristic = nil
         configCharacteristic = nil
         batteryPercent = nil
-        boardFirmwareBuild = nil
+        boardFirmwareVersion = nil
         firmwareUpdater.configure(peripheral: nil, characteristic: nil)
         boardClock = nil
         boardProtocolVersion = nil
@@ -515,10 +515,10 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             demoScrollToBottom = args[i + 1] == "connected-bottom"
             if let f = args.firstIndex(of: "-fwDemo"), f + 1 < args.count {
                 switch args[f + 1] {
-                case "available": boardProtocolVersion = 4; boardFirmwareBuild = nil; firmwareUpdater.demoSupported = true
-                case "sending": boardProtocolVersion = 4; firmwareUpdater.setDemo(.sending(0.42))
+                case "available": boardProtocolVersion = 5; boardFirmwareVersion = FirmwareVersion(1, 0, 0); firmwareUpdater.demoSupported = true
+                case "sending": boardFirmwareVersion = FirmwareVersion(1, 0, 0); firmwareUpdater.setDemo(.sending(0.42))
                 case "done": firmwareUpdater.setDemo(.done)
-                case "failed": firmwareUpdater.setDemo(.failed(String(localized: "Wrong update password.")))
+                case "failed": firmwareUpdater.setDemo(.failed(String(localized: "The board is locked for 30 seconds after failed tries. Wait and try again.")))
                 default: break
                 }
             }

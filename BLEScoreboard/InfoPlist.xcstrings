@@ -1,16 +1,36 @@
 {
-  "sourceLanguage": "en",
-  "strings": {
-    "NSBluetoothAlwaysUsageDescription": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se conecta a tu marcador LED para enviar los puntos y el reloj del partido."
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "BLEScoreboard"
+          }
+        }
+      }
+    },
+    "NSBluetoothAlwaysUsageDescription" : {
+      "comment" : "Privacy - Bluetooth Always Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connects to your LED scoreboard to send scores and the game clock."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Se conecta a tu marcador LED para enviar los puntos y el reloj del partido."
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }
