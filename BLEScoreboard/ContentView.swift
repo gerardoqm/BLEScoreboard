@@ -142,7 +142,7 @@ struct ContentView: View {
                                 HStack {
                                     Image(systemName: "pencil.circle").foregroundColor(.orange)
                                     Text("Board Name:").font(.subheadline).bold()
-                                    TextField(ble.connectedPeripheral?.name ?? "Scoreboard", text: $newBoardName)
+                                    TextField(ble.connectedBoardName ?? "Scoreboard", text: $newBoardName)
                                         .textFieldStyle(.roundedBorder).font(.subheadline)
                                         .onChange(of: newBoardName) { ble.renameStatus = "" }
                                     Button("Rename") { ble.renameDevice(to: newBoardName) }

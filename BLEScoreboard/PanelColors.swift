@@ -473,6 +473,16 @@ struct SimulatedBoardCard: View {
         .buttonStyle(.bordered).controlSize(.small)
     }
     
+    /// Says which display this is: the linked board by name, or the simulator.
+    @ViewBuilder private var titleLabel: some View {
+        if ble.isConnected {
+            Label(ble.connectedBoardName ?? String(localized: "Linked board"), systemImage: "antenna.radiowaves.left.and.right")
+                .font(.caption).bold().foregroundColor(.green)
+        } else {
+            Label("Simulated board", systemImage: "display").font(.caption).bold().foregroundColor(.purple)
+        }
+    }
+    
     /// Green when the real board's own clock matches the app's, so you can see the two are mirroring each other.
     private var syncStatus: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
@@ -496,7 +506,7 @@ struct SimulatedBoardCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Simulated board").font(.caption).bold()
+                titleLabel
                 Spacer()
                 syncStatus
             }

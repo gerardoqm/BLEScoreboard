@@ -40,6 +40,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var boardFirmwareBuild: Int?
     /// Sends the bundled firmware to the board over Bluetooth.
     let firmwareUpdater = FirmwareUpdater()
+    /// Names as boards advertise them: fresher than CBPeripheral.name, which iOS caches (it can show the old name after a rename).
+    private var advertisedNames: [UUID: String] = [:]
+    private var demoBoardName: String?
     private var colorSendWork: DispatchWorkItem?
     private var visibilitySendWork: DispatchWorkItem?
     
@@ -56,6 +59,13 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         guard let bundled = firmwareUpdater.bundled, let boardProtocol = boardProtocolVersion else { return false }
         if boardProtocol != bundled.protocolVersion { return boardProtocol < bundled.protocolVersion }
         return (boardFirmwareBuild ?? 0) < bundled.build
+    }
+    
+    /// The name of the board linked to the phone, so the screen can say whether it is showing real hardware.
+    var connectedBoardName: String? {
+        if let demo = demoBoardName { return demo }
+        guard let peripheral = connectedPeripheral else { return nil }
+        return advertisedNames[peripheral.identifier] ?? peripheral.name
     }
     
     /// Hiding elements needs protocol 4.
@@ -352,6 +362,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         }
     }
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        if let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String { advertisedNames[peripheral.identifier] = name }
         if !discoveredDevices.contains(where: { $0.identifier == peripheral.identifier }) { discoveredDevices.append(peripheral) }
         
         // FIXED: Auto-reconnect handshake recovery sequence
@@ -511,6 +522,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 default: break
                 }
             }
+            demoBoardName = "Court 1"
         }
     }
     #endif
