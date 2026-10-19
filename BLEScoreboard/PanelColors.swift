@@ -14,6 +14,9 @@ struct RGB: Codable, Equatable {
         self.init(byte(red), byte(green), byte(blue))
     }
     
+    /// The color of an RGB565 value, as the panel shows it.
+    init(rgb565 v: UInt16) { self.init(UInt8((v >> 11) * 255 / 31), UInt8(((v >> 5) & 0x3F) * 255 / 63), UInt8((v & 0x1F) * 255 / 31)) }
+    
     var color: Color { Color(red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255) }
     
     /// 16-bit RGB565, the format the LED panel uses. The board receives it big-endian.
@@ -148,12 +151,19 @@ enum LEDFont {
         "Y": ["101","101","010","010","010"],
         "Z": ["111","001","010","100","111"],
         "/": ["001","001","010","100","100"],
+        "%": ["101","001","010","100","101"],
         ":": ["0","1","0","1","0"],
         " ": ["00","00","00","00","00"],
         "-": ["000","000","111","000","000"]
     ]
     
-    static func glyph(_ ch: Character) -> [String] { glyphs[Character(ch.uppercased())] ?? glyphs["-"]! }
+    /// The bytes 1-4 stand for the emoji pictures of the team names: 5 columns of space, drawn separately.
+    static func iconSlot(_ ch: Character) -> Int? { if let a = ch.asciiValue, (1...4).contains(a) { return Int(a) - 1 }; return nil }
+    
+    static func glyph(_ ch: Character) -> [String] {
+        if iconSlot(ch) != nil { return Array(repeating: "00000", count: 5) }
+        return glyphs[Character(ch.uppercased())] ?? glyphs["-"]!
+    }
     
     /// Width of a string in font pixels, with one pixel between letters.
     static func units(_ text: String) -> Int {
@@ -172,10 +182,17 @@ struct PanelFrame {
         pixels[y * Self.width + x] = c
     }
     
-    mutating func text(_ t: String, x: Int, y: Int, scale s: Int, color: RGB, clipX: Range<Int>? = nil) {
+    mutating func text(_ t: String, x: Int, y: Int, scale s: Int, color: RGB, clipX: Range<Int>? = nil, icons: [[UInt16]] = []) {
         var cx = x
         for ch in t {
             let g = LEDFont.glyph(ch)
+            if (s == 2 || s == 3), let slot = LEDFont.iconSlot(ch), slot < icons.count, icons[slot].count == EmojiBitmap.nameSize * EmojiBitmap.nameSize {
+                let n = EmojiBitmap.nameSize * s / 2           // 10 pixels in names, 15 in alerts, like the firmware
+                for row in 0..<n { for col in 0..<n {
+                    let v = icons[slot][(row * EmojiBitmap.nameSize / n) * EmojiBitmap.nameSize + (col * EmojiBitmap.nameSize / n)]
+                    if v != 0 { set(cx + col, y + row, RGB(rgb565: v), clipX: clipX) }
+                } }
+            }
             for (row, line) in g.enumerated() {
                 for (col, bit) in line.enumerated() where bit == "1" {
                     for dx in 0..<s { for dy in 0..<s { set(cx + col * s + dx, y + row * s + dy, color, clipX: clipX) } }
@@ -229,7 +246,7 @@ extension PanelFrame {
     /// The scoreboard with the real match state: the same layout the firmware draws.
     static func live(homeName: String, awayName: String, homeScore: Int, awayScore: Int, period: Int, totalPeriods: Int,
                      minutes: Int, seconds: Int, running: Bool, colors: [PanelElement: RGB], visible: [PanelElement: Bool] = [:],
-                     time: TimeInterval) -> PanelFrame {
+                     time: TimeInterval, icons: [[UInt16]] = []) -> PanelFrame {
         func c(_ e: PanelElement) -> RGB { colors[e] ?? e.defaultColor }
         func shown(_ e: PanelElement) -> Bool { visible[e.visibilityKey] ?? true }
         var f = PanelFrame()
@@ -244,11 +261,11 @@ extension PanelFrame {
         for (name, slotX, element) in [(homeName, 2, PanelElement.homeName), (awayName, 42, .awayName)] where shown(element) {
             let units = LEDFont.units(name), width = units * 2, clip = slotX..<(slotX + 36)
             if width <= 36 {
-                f.text(name, x: slotX + (36 - width) / 2, y: 29, scale: 2, color: c(element), clipX: clip)
+                f.text(name, x: slotX + (36 - width) / 2, y: 29, scale: 2, color: c(element), clipX: clip, icons: icons)
             } else {
                 let offset = marqueeOffset(textUnits: units, time: time)
-                f.text(name, x: slotX - offset, y: 29, scale: 2, color: c(element), clipX: clip)
-                f.text(name, x: slotX - offset + width + 18, y: 29, scale: 2, color: c(element), clipX: clip)
+                f.text(name, x: slotX - offset, y: 29, scale: 2, color: c(element), clipX: clip, icons: icons)
+                f.text(name, x: slotX - offset + width + 18, y: 29, scale: 2, color: c(element), clipX: clip, icons: icons)
             }
         }
         return f
@@ -258,14 +275,22 @@ extension PanelFrame {
     static func alertDuration(text: String) -> Double { Double((width + LEDFont.units(text) * 3) * 18 + 400) / 1000 }
     
     /// One frame of a start-of-game / start-of-period alert, or nil once it has finished.
-    static func alert(text: String, color: RGB, elapsed: Double) -> PanelFrame? {
+    static func alert(text: String, color: RGB, elapsed: Double, icon: [UInt16]? = nil, nameIcons: [[UInt16]] = []) -> PanelFrame? {
         guard elapsed < alertDuration(text: text) else { return nil }
         var f = PanelFrame()
         if Int(elapsed * 1000 / 250) % 2 == 0 {
             for i in 0..<width { for k in 0..<2 { f.set(i, k, color); f.set(i, height - 1 - k, color) } }
             for j in 0..<height { for k in 0..<2 { f.set(k, j, color); f.set(width - 1 - k, j, color) } }
         }
-        f.text(text, x: width - Int(elapsed * 1000 / 18), y: 12, scale: 3, color: color)
+        let textX = width - Int(elapsed * 1000 / 18)
+        f.text(text, x: textX, y: 12, scale: 3, color: color, icons: nameIcons)
+        if let icon, icon.count == GoalIcon.size * GoalIcon.size {      // the icon rides in front of the text
+            for row in 0..<GoalIcon.size { for col in 0..<GoalIcon.size {
+                let v = icon[row * GoalIcon.size + col]
+                guard v != 0 else { continue }
+                f.set(textX - 19 + col, 12 + row, RGB(rgb565: v))
+            } }
+        }
         return f
     }
 }
@@ -276,6 +301,56 @@ struct AlertPlayback {
     let color: RGB
     let start: Date
     var frozenAt: Double? = nil
+    /// 16 x 16 RGB565 pixels (0 = transparent) scrolled in front of the text, for goal alerts.
+    var icon: [UInt16]? = nil
+    /// The pictures behind emoji characters (bytes 1-4) in the text, for goal alerts naming a team.
+    var nameIcons: [[UInt16]] = []
+}
+
+/// Turns an emoji into a small RGB565 picture for the panel.
+enum EmojiBitmap {
+    static let nameSize = 10   // inside team names
+    
+    /// Draws the emoji on black and returns it as RGB565 pixels, row by row. Black stays 0, which the panel treats as see-through.
+    static func make(_ emoji: String, size: Int, fontSize: CGFloat) -> [UInt16]? {
+        guard !emoji.isEmpty else { return nil }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1; format.opaque = true
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size), format: format)
+        let image = renderer.image { ctx in
+            UIColor.black.setFill(); ctx.fill(CGRect(x: 0, y: 0, width: size, height: size))
+            let text = emoji as NSString
+            let attributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: fontSize)]
+            let box = text.size(withAttributes: attributes)
+            text.draw(at: CGPoint(x: (CGFloat(size) - box.width) / 2, y: (CGFloat(size) - box.height) / 2), withAttributes: attributes)
+        }
+        guard let cg = image.cgImage else { return nil }
+        var raw = [UInt8](repeating: 0, count: size * size * 4)
+        guard let context = CGContext(data: &raw, width: size, height: size, bitsPerComponent: 8, bytesPerRow: size * 4,
+                                      space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        context.draw(cg, in: CGRect(x: 0, y: 0, width: size, height: size))
+        return (0..<(size * size)).map { i in
+            let r = UInt16(raw[i * 4]), g = UInt16(raw[i * 4 + 1]), b = UInt16(raw[i * 4 + 2])
+            return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3)
+        }
+    }
+    
+    /// True for an emoji (e.g. ⚽ 🦁 ❤️), false for letters, digits and symbols such as © or #.
+    static func isEmoji(_ ch: Character) -> Bool {
+        guard let first = ch.unicodeScalars.first else { return false }
+        if first.properties.isEmojiPresentation { return true }
+        return first.properties.isEmoji && first.value > 0x7F && ch.unicodeScalars.count > 1   // text-style emoji made emoji by a variation selector or joiner
+    }
+}
+
+/// The emoji that can mark a goal, and the conversion of an emoji to the 16 x 16 picture the panel draws.
+enum GoalIcon {
+    static let choices = ["⚽", "🥅", "🏆", "🥇", "🔥", "⭐", "🎯", "👏", "🎉", "🏀", "🏈", "⚾", "🏐", "🏒"]
+    static let storeKey = "goalIcon"
+    static let size = 16
+    
+    static func bitmap(for emoji: String) -> [UInt16]? { EmojiBitmap.make(emoji, size: size, fontSize: 13) }
 }
 
 struct LEDPanelPreview: View {
@@ -288,7 +363,7 @@ struct LEDPanelPreview: View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: alert == nil)) { timeline in
         Canvas { context, size in
             let playing = alert.flatMap { a in
-                PanelFrame.alert(text: a.text, color: a.color, elapsed: a.frozenAt ?? timeline.date.timeIntervalSince(a.start))
+                PanelFrame.alert(text: a.text, color: a.color, elapsed: a.frozenAt ?? timeline.date.timeIntervalSince(a.start), icon: a.icon, nameIcons: a.nameIcons)
             }
             let frame = playing ?? PanelFrame.sample(colors: colors, clockRunning: clockRunning, visible: visible)
             frame.draw(in: context, size: size)
@@ -319,9 +394,44 @@ struct PanelColorsView: View {
     
     /// Plays the alert in the preview and, when a board is linked, on the board too.
     private func play(_ kind: PanelAlertKind) {
-        let element: PanelElement = { if case .gameStart = kind { return .alertGame } else { return .alertPeriod } }()
-        alert = AlertPlayback(text: ble.panelAlertText(kind), color: ble.panelColors[element] ?? element.defaultColor, start: Date())
-        ble.sendPanelAlert(kind)
+        ble.sendPanelAlert(kind)        // the preview below plays whatever the board is told to play
+        alert = ble.panelAlertPlayback
+    }
+    
+    /// Goal icon: pick the emoji that appears with the "Goal by ..." alert, or none.
+    private var goalIconPicker: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Goal icon").font(.subheadline).bold()
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 5), spacing: 6) {
+                ForEach(GoalIcon.choices + [""], id: \.self) { emoji in
+                    Button { ble.goalIcon = emoji } label: {
+                        Group {
+                            if emoji.isEmpty { Image(systemName: "nosign").font(.title3).foregroundColor(.secondary) }
+                            else { Text(emoji).font(.title2) }
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 42)
+                        .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.accentColor, lineWidth: ble.goalIcon == emoji ? 3 : 0))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(emoji.isEmpty ? Text("No icon") : Text(emoji))
+                }
+            }
+            Button { ble.testGoalAlert(); alert = ble.panelAlertPlayback } label: {
+                Label("Play goal alert", systemImage: "play.circle").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered).font(.footnote)
+            .disabled(!(ble.panelVisibility[.alertGame] ?? true))
+            if ble.boardLacksIconSupport {
+                Label("Update the board firmware to show the icon on the board.", systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote).foregroundColor(.orange)
+            }
+            Text("The goal alert uses the game start alert's color and switch.").font(.caption).foregroundColor(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
     }
     
     private func visibleBinding(for element: PanelElement) -> Binding<Bool> {
@@ -391,6 +501,8 @@ struct PanelColorsView: View {
                     Text("Alerts also play on the board when it is linked.").font(.caption).foregroundColor(.secondary)
                 }
                 
+                goalIconPicker
+                
                 Text("Switch an element off to hide it on the panel. The timer switch hides it whether it is running or stopped.")
                     .font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
                 
@@ -433,14 +545,15 @@ struct LiveBoardPreview: View {
         TimelineView(.animation(minimumInterval: 1.0 / 20)) { timeline in
             Canvas { context, size in
                 let alert = ble.panelAlertPlayback.flatMap {
-                    PanelFrame.alert(text: $0.text, color: $0.color, elapsed: $0.frozenAt ?? timeline.date.timeIntervalSince($0.start))
+                    PanelFrame.alert(text: $0.text, color: $0.color, elapsed: $0.frozenAt ?? timeline.date.timeIntervalSince($0.start), icon: $0.icon, nameIcons: $0.nameIcons)
                 }
                 let frame = alert ?? PanelFrame.live(
-                    homeName: ble.panelText(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName),
-                    awayName: ble.panelText(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName),
+                    homeName: ble.panelText(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName, firstSlot: 0),
+                    awayName: ble.panelText(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName, firstSlot: 2),
                     homeScore: ble.homeScore, awayScore: ble.awayScore, period: ble.period, totalPeriods: ble.totalPeriods,
                     minutes: ble.timerMin, seconds: ble.timerSec, running: ble.isTimerRunning,
-                    colors: ble.panelColors, visible: ble.panelVisibility, time: timeline.date.timeIntervalSinceReferenceDate)
+                    colors: ble.panelColors, visible: ble.panelVisibility, time: timeline.date.timeIntervalSinceReferenceDate,
+                    icons: ble.nameIconBitmaps)
                 frame.draw(in: context, size: size)
             }
         }
@@ -454,24 +567,6 @@ struct LiveBoardPreview: View {
 /// Card at the bottom of the match screen: the simulated board, a sync indicator and the match controls.
 struct SimulatedBoardCard: View {
     @ObservedObject var ble: AdvancedBLEManager
-    @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
-    
-    private func change(_ value: inout Int, by delta: Int, max limit: Int = 99) {
-        value = min(max(value + delta, 0), limit)
-        ble.syncDataToDisplay()
-    }
-    
-    private func scoreButtons(_ title: LocalizedStringKey, color: Color, score: Binding<Int>) -> some View {
-        HStack(spacing: 6) {
-            Text(title).font(.caption2).bold().foregroundColor(color)
-            Button { score.wrappedValue = max(score.wrappedValue - 1, 0); ble.syncDataToDisplay() } label: { Image(systemName: "minus") }
-                .accessibilityLabel(Text("Minus"))
-            Button { score.wrappedValue = min(score.wrappedValue + 1, 99); ble.syncDataToDisplay() } label: { Image(systemName: "plus") }
-                .accessibilityLabel(Text("Plus"))
-        }
-        .buttonStyle(.bordered).controlSize(.small)
-    }
-    
     /// Says which display this is: the linked board by name, or the simulator.
     @ViewBuilder private var titleLabel: some View {
         if ble.isConnected {
@@ -510,25 +605,6 @@ struct SimulatedBoardCard: View {
                 syncStatus
             }
             LiveBoardPreview(ble: ble)
-            HStack(spacing: 8) {
-                scoreButtons("HOME", color: .blue, score: $ble.homeScore)
-                Spacer(minLength: 0)
-                scoreButtons("AWAY", color: .red, score: $ble.awayScore)
-            }
-            HStack(spacing: 8) {
-                Button { ble.period = ble.period < ble.totalPeriods ? ble.period + 1 : 1; ble.syncDataToDisplay() } label: {
-                    Label("Next period", systemImage: "forward.end").lineLimit(1)
-                }
-                .buttonStyle(.bordered).controlSize(.small)
-                Spacer(minLength: 0)
-                Button { ble.toggleClock() } label: {
-                    Label(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start"), systemImage: ble.isTimerRunning ? "pause.fill" : "play.fill")
-                }
-                .buttonStyle(.borderedProminent).controlSize(.small).tint(ble.isTimerRunning ? .orange : .green)
-                Button { ble.resetClockManual(minutes: lastSavedMinutes) } label: { Image(systemName: "arrow.counterclockwise") }
-                    .accessibilityLabel(Text("Reset Clock"))
-                    .buttonStyle(.bordered).controlSize(.small)
-            }
         }
         .padding()
         .background(Color(.secondarySystemBackground))
