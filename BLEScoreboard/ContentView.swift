@@ -33,6 +33,7 @@ struct ContentView: View {
     @StateObject var ble = AdvancedBLEManager()
     @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
     @State private var newBoardName = ""
+    @State private var showColors = ProcessInfo.processInfo.arguments.contains("-showColors")  // also used for screenshots
     @State private var showTutorial = ProcessInfo.processInfo.arguments.contains("-showTutorial")  // also used for screenshots
     
     private var hasBoards: Bool { !ble.discoveredDevices.isEmpty || !ble.demoBoardNames.isEmpty }
@@ -147,6 +148,16 @@ struct ContentView: View {
                                 if !ble.renameStatus.isEmpty {
                                     Text(ble.renameStatus).font(.caption2).foregroundColor(.secondary)
                                 }
+                                Button { showColors = true } label: {
+                                    HStack {
+                                        Image(systemName: "paintpalette").foregroundColor(.pink)
+                                        Text("Panel Colors").font(.subheadline).bold()
+                                        Spacer()
+                                        Image(systemName: "chevron.right").font(.footnote).foregroundColor(.secondary)
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
                                 Divider()
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -208,8 +219,17 @@ struct ContentView: View {
                                     }
                                 }
                                 Divider()
-                                Text("LED Panel Brightness").font(.caption).bold()
-                                Slider(value: $ble.brightness, in: 10...120, step: 5) { _ in ble.syncDataToDisplay() }
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("LED Panel Brightness").font(.caption).bold()
+                                        // 10...120 is the range the firmware accepts; show it as a percentage of the maximum
+                                        Text("\(Int((ble.brightness / 120 * 100).rounded()))%")
+                                            .font(.title3).bold().monospacedDigit()
+                                    }
+                                    Spacer()
+                                    Stepper("LED Panel Brightness", value: $ble.brightness, in: 10...120, step: 5).labelsHidden()
+                                }
+                                .onChange(of: ble.brightness) { ble.syncDataToDisplay() }
                             }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
                             .id("matchSettings")
                             
@@ -217,6 +237,7 @@ struct ContentView: View {
                     }
                     .onAppear { if ble.demoScrollToBottom { proxy.scrollTo("matchSettings", anchor: .bottom) } }
                     .onChange(of: ble.isConnected) { newBoardName = "" }
+                    .navigationDestination(isPresented: $showColors) { PanelColorsView(ble: ble) }
                     }
                 }
             }
