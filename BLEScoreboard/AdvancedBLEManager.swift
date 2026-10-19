@@ -35,16 +35,30 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var panelAlertPlayback: AlertPlayback?
     /// The board's own clock, from its telemetry, used to show whether it is in sync with the app.
     @Published var boardClock: BoardClock?
+    @Published var panelVisibility: [PanelElement: Bool] = PanelVisibilityStore.load()
+    /// Names as boards advertise them: fresher than CBPeripheral.name, which iOS caches (it can show the old name after a rename).
+    private var advertisedNames: [UUID: String] = [:]
+    private var demoBoardName: String?
     private var colorSendWork: DispatchWorkItem?
+    private var visibilitySendWork: DispatchWorkItem?
     
     // Board telemetry (notification on the main characteristic)
     @Published var batteryPercent: Int? = nil
     @Published var boardProtocolVersion: Int? = nil
     @Published var telemetryReceived = false
     /// Telemetry layout version this app expects. Keep in sync with PROTOCOL_VERSION in scoreboard_BT_ESP32S3.ino.
-    static let expectedProtocolVersion = 3
+    static let expectedProtocolVersion = 4
     /// Colors need protocol 3. Unknown until the board's first telemetry arrives, so never warn before that.
     var boardLacksColorSupport: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < 3 }
+    /// The name of the board linked to the phone, so the screen can say whether it is showing real hardware.
+    var connectedBoardName: String? {
+        if let demo = demoBoardName { return demo }
+        guard let peripheral = connectedPeripheral else { return nil }
+        return advertisedNames[peripheral.identifier] ?? peripheral.name
+    }
+    
+    /// Hiding elements needs protocol 4.
+    var boardLacksHideSupport: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < 4 }
     var boardFirmwareOutdated: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < Self.expectedProtocolVersion }
     
     // Visual Banner Alert State publishers
@@ -65,6 +79,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     private let cmdSetName: UInt8 = 0x01
     private let cmdApply: UInt8 = 0x02
     private let cmdColors: UInt8 = 0x03   // [0x03] + 9 x RGB565 big-endian, in PanelElement order
+    private let cmdVisibility: UInt8 = 0x05  // [0x05, mask low byte, mask high byte]; bit i = PanelElement i is shown
     private let cmdAlert: UInt8 = 0x04    // [0x04, type (1 game start, 2 period start)] + 1-16 ASCII characters
     static let deviceNameMaxLength = 20
     
@@ -180,6 +195,21 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         sendColors()
     }
     
+    func setVisible(_ visible: Bool, for element: PanelElement) {
+        panelVisibility[element.visibilityKey] = visible
+        PanelVisibilityStore.save(panelVisibility)
+        visibilitySendWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in self?.sendVisibility() }
+        visibilitySendWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: work)
+    }
+    
+    func sendVisibility() {
+        guard let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
+        let mask = PanelVisibilityStore.mask(panelVisibility)
+        peripheral.writeValue(Data([cmdVisibility, UInt8(mask & 0xFF), UInt8(mask >> 8)]), for: config, type: .withResponse)
+    }
+    
     /// A color picker drag produces many changes; send once it settles.
     private func scheduleColorSend() {
         colorSendWork?.cancel()
@@ -203,6 +233,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     func sendPanelAlert(_ kind: PanelAlertKind) {
         var element = PanelElement.alertGame
         if case .periodStart = kind { element = .alertPeriod }
+        guard panelVisibility[element] ?? true else { return }   // this alert is switched off
         panelAlertPlayback = AlertPlayback(text: panelAlertText(kind), color: panelColors[element] ?? element.defaultColor, start: Date())
         guard let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
         var type: UInt8 = 1
@@ -268,7 +299,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 if let config = self.configCharacteristic {
                     peripheral.writeValue(Data([self.cmdApply]), for: config, type: .withResponse)
                 }
-            case (self.cmdColors, _), (self.cmdAlert, _):
+            case (self.cmdColors, _), (self.cmdAlert, _), (self.cmdVisibility, _):
                 break   // colors need no feedback; boards without protocol 3 are reported by the version check
             case (self.cmdApply, 0):
                 self.renameStatus = String(localized: "Renamed. The board is restarting...")
@@ -312,6 +343,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         }
     }
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        if let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String { advertisedNames[peripheral.identifier] = name }
         if !discoveredDevices.contains(where: { $0.identifier == peripheral.identifier }) { discoveredDevices.append(peripheral) }
         
         // FIXED: Auto-reconnect handshake recovery sequence
@@ -327,7 +359,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         for characteristic in characteristics where characteristic.uuid == configUUID {
             configCharacteristic = characteristic
             peripheral.setNotifyValue(true, for: characteristic)
-            DispatchQueue.main.async { self.renameStatus = ""; self.sendColors() }
+            DispatchQueue.main.async { self.renameStatus = ""; self.sendColors(); self.sendVisibility() }
         }
         for characteristic in characteristics where characteristic.uuid == charUUID {
             targetCharacteristic = characteristic
@@ -453,6 +485,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             periodLabelText = String(localized: "Period")
             batteryPercent = 82; boardProtocolVersion = Self.expectedProtocolVersion; telemetryReceived = true
             demoScrollToBottom = args[i + 1] == "connected-bottom"
+            demoBoardName = "Court 1"
         }
     }
     #endif

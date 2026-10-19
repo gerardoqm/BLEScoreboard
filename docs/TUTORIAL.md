@@ -32,7 +32,7 @@ Choose the current period, the total number of periods and the panel brightness.
 
 ## 5. Choose panel colors
 
-Tap **Panel Colors** in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts, using the swatches or any color from the color picker. The preview at the top shows the panel as you choose. The board saves the colors, and the app sends them again every time you connect. **Reset colors** goes back to the defaults.
+Tap **Panel Colors** in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts, using the swatches or any color from the color picker. The preview at the top shows the panel as you choose. The board saves the colors, and the app sends them again every time you connect. Use the switch on a row to **hide** that element on the panel (the timer switch hides the timer whether it is running or stopped); an alert you switch off does not play. The preview and the simulated board hide it right away. **Reset colors** goes back to the default colors and leaves the switches as they are.
 
 <img src="images/5-colors-en.png" width="280" alt="Panel Colors page with a live panel preview">
 
@@ -65,5 +65,5 @@ When a real board is linked, the simulated panel is the live preview of that boa
 | The board does not appear | Check that it is powered and its LED blinks blue, that Bluetooth is on, and pull down on the list to rescan. |
 | "Board firmware is outdated" | Flash the latest firmware from the `scoreboard_BT_ESP32S3` repository (USB, or Wi-Fi by IP address). |
 | The LED blinks cyan | The link dropped. The board waits 30 seconds for the same phone, then resets and goes back to blue. |
-| Colors or alerts do nothing on the panel | The board needs the latest firmware (protocol version 3). The colors page shows a warning when it is older. |
+| Colors, alerts or hidden elements do nothing on the panel | The board needs the latest firmware (protocol version 4). The colors page shows a warning when it is older. |
 | Rename does nothing | The board needs current firmware; the status line under the field shows why. |

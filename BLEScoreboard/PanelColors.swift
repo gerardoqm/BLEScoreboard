@@ -41,6 +41,10 @@ enum PanelElement: String, CaseIterable, Identifiable {
         }
     }
     
+    /// The timer has one switch for both of its colors, kept on the running row.
+    var visibilityKey: PanelElement { self == .timerStopped ? .timerRunning : self }
+    var hasVisibilitySwitch: Bool { self != .timerStopped }
+    
     /// The colors the panel used before colors were configurable.
     var defaultColor: RGB {
         switch self {
@@ -75,6 +79,32 @@ enum PanelColorStore {
     static func save(_ colors: [PanelElement: RGB]) {
         let raw = Dictionary(uniqueKeysWithValues: colors.map { ($0.key.rawValue, $0.value) })
         if let data = try? JSONEncoder().encode(raw) { UserDefaults.standard.set(data, forKey: key) }
+    }
+}
+
+/// Which elements are shown on the panel. Everything is shown by default.
+enum PanelVisibilityStore {
+    private static let key = "panelVisibility"
+    
+    static func load() -> [PanelElement: Bool] {
+        var visible = Dictionary(uniqueKeysWithValues: PanelElement.allCases.map { ($0, true) })
+        if let data = UserDefaults.standard.data(forKey: key),
+           let saved = try? JSONDecoder().decode([String: Bool].self, from: data) {
+            for element in PanelElement.allCases { if let v = saved[element.rawValue] { visible[element] = v } }
+        }
+        return visible
+    }
+    
+    static func save(_ visible: [PanelElement: Bool]) {
+        let raw = Dictionary(uniqueKeysWithValues: visible.map { ($0.key.rawValue, $0.value) })
+        if let data = try? JSONEncoder().encode(raw) { UserDefaults.standard.set(data, forKey: key) }
+    }
+    
+    /// Wire format: bit i set means PanelElement i is shown (the timer's stopped bit follows its running bit).
+    static func mask(_ visible: [PanelElement: Bool]) -> UInt16 {
+        var mask: UInt16 = 0
+        for (index, element) in PanelElement.allCases.enumerated() where visible[element.visibilityKey] ?? true { mask |= 1 << UInt16(index) }
+        return mask
     }
 }
 
@@ -156,17 +186,18 @@ struct PanelFrame {
     }
     
     /// The scoreboard with sample data: timer top left, period top right, scores in the middle, names at the bottom.
-    static func sample(colors: [PanelElement: RGB], clockRunning: Bool) -> PanelFrame {
+    static func sample(colors: [PanelElement: RGB], clockRunning: Bool, visible: [PanelElement: Bool] = [:]) -> PanelFrame {
         func c(_ e: PanelElement) -> RGB { colors[e] ?? e.defaultColor }
+        func shown(_ e: PanelElement) -> Bool { visible[e.visibilityKey] ?? true }
         var f = PanelFrame()
-        f.text("07:45", x: 2, y: 1, scale: 2, color: c(clockRunning ? .timerRunning : .timerStopped))
+        if shown(.timerRunning) { f.text("07:45", x: 2, y: 1, scale: 2, color: c(clockRunning ? .timerRunning : .timerStopped)) }
         let period = "2/4"
-        f.text(period, x: 78 - LEDFont.units(period) * 2, y: 1, scale: 2, color: c(.period))
+        if shown(.period) { f.text(period, x: 78 - LEDFont.units(period) * 2, y: 1, scale: 2, color: c(.period)) }
         for j in 0..<26 { f.set(40, 12 + j, RGB(40, 40, 40)) }
-        for (text, center, element) in [("12", 20, PanelElement.homeScore), ("9", 60, .awayScore)] {
+        for (text, center, element) in [("12", 20, PanelElement.homeScore), ("9", 60, .awayScore)] where shown(element) {
             f.text(text, x: center - LEDFont.units(text) * 3 / 2, y: 13, scale: 3, color: c(element))
         }
-        for (text, slotX, element) in [("LION", 2, PanelElement.homeName), ("BEAR", 42, .awayName)] {
+        for (text, slotX, element) in [("LION", 2, PanelElement.homeName), ("BEAR", 42, .awayName)] where shown(element) {
             f.text(text, x: slotX + (36 - LEDFont.units(text) * 2) / 2, y: 29, scale: 2, color: c(element), clipX: slotX..<(slotX + 36))
         }
         return f
@@ -197,18 +228,20 @@ extension PanelFrame {
     
     /// The scoreboard with the real match state: the same layout the firmware draws.
     static func live(homeName: String, awayName: String, homeScore: Int, awayScore: Int, period: Int, totalPeriods: Int,
-                     minutes: Int, seconds: Int, running: Bool, colors: [PanelElement: RGB], time: TimeInterval) -> PanelFrame {
+                     minutes: Int, seconds: Int, running: Bool, colors: [PanelElement: RGB], visible: [PanelElement: Bool] = [:],
+                     time: TimeInterval) -> PanelFrame {
         func c(_ e: PanelElement) -> RGB { colors[e] ?? e.defaultColor }
+        func shown(_ e: PanelElement) -> Bool { visible[e.visibilityKey] ?? true }
         var f = PanelFrame()
-        f.text(String(format: "%02d:%02d", minutes, seconds), x: 2, y: 1, scale: 2, color: c(running ? .timerRunning : .timerStopped))
+        if shown(.timerRunning) { f.text(String(format: "%02d:%02d", minutes, seconds), x: 2, y: 1, scale: 2, color: c(running ? .timerRunning : .timerStopped)) }
         let periodText = "\(period)/\(totalPeriods)"
-        f.text(periodText, x: 78 - LEDFont.units(periodText) * 2, y: 1, scale: 2, color: c(.period))
+        if shown(.period) { f.text(periodText, x: 78 - LEDFont.units(periodText) * 2, y: 1, scale: 2, color: c(.period)) }
         for j in 0..<26 { f.set(40, 12 + j, RGB(40, 40, 40)) }
-        for (value, center, element) in [(homeScore, 20, PanelElement.homeScore), (awayScore, 60, .awayScore)] {
+        for (value, center, element) in [(homeScore, 20, PanelElement.homeScore), (awayScore, 60, .awayScore)] where shown(element) {
             let text = String(value)
             f.text(text, x: center - LEDFont.units(text) * 3 / 2, y: 13, scale: 3, color: c(element))
         }
-        for (name, slotX, element) in [(homeName, 2, PanelElement.homeName), (awayName, 42, .awayName)] {
+        for (name, slotX, element) in [(homeName, 2, PanelElement.homeName), (awayName, 42, .awayName)] where shown(element) {
             let units = LEDFont.units(name), width = units * 2, clip = slotX..<(slotX + 36)
             if width <= 36 {
                 f.text(name, x: slotX + (36 - width) / 2, y: 29, scale: 2, color: c(element), clipX: clip)
@@ -248,6 +281,7 @@ struct AlertPlayback {
 struct LEDPanelPreview: View {
     let colors: [PanelElement: RGB]
     let clockRunning: Bool
+    var visible: [PanelElement: Bool] = [:]
     var alert: AlertPlayback? = nil
     
     var body: some View {
@@ -256,7 +290,7 @@ struct LEDPanelPreview: View {
             let playing = alert.flatMap { a in
                 PanelFrame.alert(text: a.text, color: a.color, elapsed: a.frozenAt ?? timeline.date.timeIntervalSince(a.start))
             }
-            let frame = playing ?? PanelFrame.sample(colors: colors, clockRunning: clockRunning)
+            let frame = playing ?? PanelFrame.sample(colors: colors, clockRunning: clockRunning, visible: visible)
             frame.draw(in: context, size: size)
         }
         }
@@ -290,13 +324,24 @@ struct PanelColorsView: View {
         ble.sendPanelAlert(kind)
     }
     
+    private func visibleBinding(for element: PanelElement) -> Binding<Bool> {
+        Binding(get: { ble.panelVisibility[element.visibilityKey] ?? true }, set: { ble.setVisible($0, for: element) })
+    }
+    
     private func row(_ element: PanelElement) -> some View {
         let current = ble.panelColors[element] ?? element.defaultColor
+        let isShown = ble.panelVisibility[element.visibilityKey] ?? true
         return VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(element.title).font(.subheadline).bold()
                 Spacer()
+                if element.hasVisibilitySwitch {
+                    Toggle("Show on panel", isOn: visibleBinding(for: element)).labelsHidden().padding(.trailing, 6)
+                }
                 ColorPicker("", selection: binding(for: element), supportsOpacity: false).labelsHidden()
+            }
+            if !isShown && element.hasVisibilitySwitch {
+                Text("Hidden on the panel").font(.caption2).foregroundColor(.secondary)
             }
             HStack(spacing: 10) {
                 ForEach(Array(Self.presets.enumerated()), id: \.offset) { _, preset in
@@ -307,6 +352,7 @@ struct PanelColorsView: View {
                     .buttonStyle(.plain)
                 }
             }
+            .opacity(isShown ? 1 : 0.35)
         }
         .padding(.vertical, 10)
     }
@@ -315,7 +361,7 @@ struct PanelColorsView: View {
         ScrollViewReader { proxy in
         ScrollView {
             VStack(spacing: 16) {
-                LEDPanelPreview(colors: ble.panelColors, clockRunning: previewRunning, alert: alert)
+                LEDPanelPreview(colors: ble.panelColors, clockRunning: previewRunning, visible: ble.panelVisibility, alert: alert)
                 Toggle("Preview with the clock running", isOn: $previewRunning).font(.footnote)
                 
                 if ble.boardLacksColorSupport {
@@ -337,10 +383,21 @@ struct PanelColorsView: View {
                 VStack(spacing: 8) {
                     HStack(spacing: 12) {
                         Button { play(.gameStart) } label: { Label("Play game start alert", systemImage: "play.circle").frame(maxWidth: .infinity) }
+                            .disabled(!(ble.panelVisibility[.alertGame] ?? true))
                         Button { play(.periodStart(2)) } label: { Label("Play period start alert", systemImage: "play.circle").frame(maxWidth: .infinity) }
+                            .disabled(!(ble.panelVisibility[.alertPeriod] ?? true))
                     }
                     .buttonStyle(.bordered).font(.footnote)
                     Text("Alerts also play on the board when it is linked.").font(.caption).foregroundColor(.secondary)
+                }
+                
+                Text("Switch an element off to hide it on the panel. The timer switch hides it whether it is running or stopped.")
+                    .font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
+                
+                if ble.boardLacksHideSupport {
+                    Label("Update the board firmware to hide elements on the board. The preview already hides them.", systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote).foregroundColor(.orange)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 
                 Button("Reset colors") { ble.resetColors() }.buttonStyle(.bordered).id("resetColors")
@@ -383,7 +440,7 @@ struct LiveBoardPreview: View {
                     awayName: ble.panelText(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName),
                     homeScore: ble.homeScore, awayScore: ble.awayScore, period: ble.period, totalPeriods: ble.totalPeriods,
                     minutes: ble.timerMin, seconds: ble.timerSec, running: ble.isTimerRunning,
-                    colors: ble.panelColors, time: timeline.date.timeIntervalSinceReferenceDate)
+                    colors: ble.panelColors, visible: ble.panelVisibility, time: timeline.date.timeIntervalSinceReferenceDate)
                 frame.draw(in: context, size: size)
             }
         }
@@ -415,6 +472,16 @@ struct SimulatedBoardCard: View {
         .buttonStyle(.bordered).controlSize(.small)
     }
     
+    /// Says which display this is: the linked board by name, or the simulator.
+    @ViewBuilder private var titleLabel: some View {
+        if ble.isConnected {
+            Label(ble.connectedBoardName ?? String(localized: "Linked board"), systemImage: "antenna.radiowaves.left.and.right")
+                .font(.caption).bold().foregroundColor(.green)
+        } else {
+            Label("Simulated board", systemImage: "display").font(.caption).bold().foregroundColor(.purple)
+        }
+    }
+    
     /// Green when the real board's own clock matches the app's, so you can see the two are mirroring each other.
     private var syncStatus: some View {
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
@@ -438,7 +505,7 @@ struct SimulatedBoardCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("Simulated board").font(.caption).bold()
+                titleLabel
                 Spacer()
                 syncStatus
             }

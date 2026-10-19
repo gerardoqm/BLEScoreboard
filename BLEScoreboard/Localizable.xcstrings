@@ -811,16 +811,6 @@
         }
       }
     },
-    "Tap Panel Colors in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts. The preview shows the panel as you choose, and the board remembers your colors.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Toca Colores del panel en la tarjeta superior. Elige el color del reloj (en marcha y detenido), el periodo, el nombre y los puntos de cada equipo, y las dos alertas de inicio. La vista previa muestra el panel mientras eliges, y el marcador recuerda tus colores."
-          }
-        }
-      }
-    },
     "6. Start alerts": {
       "localizations": {
         "es": {
@@ -977,6 +967,66 @@
           "stringUnit": {
             "state": "translated",
             "value": "¿No tienes un marcador a la mano? Toca Probar el marcador simulado en la pantalla Buscar marcadores. Al final de la pantalla del partido, un panel simulado muestra lo mismo que el marcador real: puntos, reloj, periodo, nombres, tus colores y las alertas de inicio. Contrólalo desde el teléfono o el Watch. Con un marcador real vinculado lo refleja y muestra si los dos están sincronizados."
+          }
+        }
+      }
+    },
+    "Show on panel": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar en el panel"
+          }
+        }
+      }
+    },
+    "Hidden on the panel": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oculto en el panel"
+          }
+        }
+      }
+    },
+    "Switch an element off to hide it on the panel. The timer switch hides it whether it is running or stopped.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apaga un elemento para ocultarlo en el panel. El interruptor del reloj lo oculta tanto en marcha como detenido."
+          }
+        }
+      }
+    },
+    "Update the board firmware to hide elements on the board. The preview already hides them.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualiza el firmware del marcador para ocultar elementos en el marcador. La vista previa ya los oculta."
+          }
+        }
+      }
+    },
+    "Tap Panel Colors in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts. Use the switch on a row to hide that element on the panel; an alert you switch off does not play. The preview shows the panel as you choose, and the board remembers your choices.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca Colores del panel en la tarjeta superior. Elige el color del reloj (en marcha y detenido), el periodo, el nombre y los puntos de cada equipo, y las dos alertas de inicio. Usa el interruptor de una fila para ocultar ese elemento en el panel; una alerta apagada no se reproduce. La vista previa muestra el panel mientras eliges, y el marcador recuerda tus elecciones."
+          }
+        }
+      }
+    },
+    "Linked board": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcador vinculado"
           }
         }
       }
