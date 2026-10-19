@@ -50,6 +50,14 @@ The Watch app lets you add or subtract points (− and + for each team), change 
 
 <img src="images/7-watch-en.png" width="200" alt="Apple Watch remote">
 
+## 8. Try the simulated board
+
+No board at hand, or want to see a whole match? On the Find Scoreboards screen tap **Try the simulated board**. The match screen works the same way. At the bottom, a simulated panel shows what the real board shows: scores, clock, period, team names (scrolling when they don't fit), your colors and the start alerts. Under it are score, period and start/pause buttons, and the Apple Watch controls it too.
+
+When a real board is linked, the simulated panel is the live preview of that board: the board mirrors the app, and a status line shows **Board in sync** when the board's own clock matches. **Exit simulator** (top card) goes back to the board list.
+
+<img src="images/8-simulator-button-en.png" width="240" alt="The Try the simulated board button"> <img src="images/8-simulator-en.png" width="240" alt="The simulated board at the bottom of the match screen">
+
 ## Troubleshooting
 
 | Problem | What to try |
