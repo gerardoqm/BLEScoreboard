@@ -1020,6 +1020,16 @@
           }
         }
       }
+    },
+    "Linked board": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcador vinculado"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

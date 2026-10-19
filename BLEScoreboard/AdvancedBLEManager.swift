@@ -36,6 +36,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     /// The board's own clock, from its telemetry, used to show whether it is in sync with the app.
     @Published var boardClock: BoardClock?
     @Published var panelVisibility: [PanelElement: Bool] = PanelVisibilityStore.load()
+    /// Names as boards advertise them: fresher than CBPeripheral.name, which iOS caches (it can show the old name after a rename).
+    private var advertisedNames: [UUID: String] = [:]
+    private var demoBoardName: String?
     private var colorSendWork: DispatchWorkItem?
     private var visibilitySendWork: DispatchWorkItem?
     
@@ -47,6 +50,13 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     static let expectedProtocolVersion = 4
     /// Colors need protocol 3. Unknown until the board's first telemetry arrives, so never warn before that.
     var boardLacksColorSupport: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < 3 }
+    /// The name of the board linked to the phone, so the screen can say whether it is showing real hardware.
+    var connectedBoardName: String? {
+        if let demo = demoBoardName { return demo }
+        guard let peripheral = connectedPeripheral else { return nil }
+        return advertisedNames[peripheral.identifier] ?? peripheral.name
+    }
+    
     /// Hiding elements needs protocol 4.
     var boardLacksHideSupport: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < 4 }
     var boardFirmwareOutdated: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < Self.expectedProtocolVersion }
@@ -333,6 +343,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         }
     }
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+        if let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String { advertisedNames[peripheral.identifier] = name }
         if !discoveredDevices.contains(where: { $0.identifier == peripheral.identifier }) { discoveredDevices.append(peripheral) }
         
         // FIXED: Auto-reconnect handshake recovery sequence
@@ -474,6 +485,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             periodLabelText = String(localized: "Period")
             batteryPercent = 82; boardProtocolVersion = Self.expectedProtocolVersion; telemetryReceived = true
             demoScrollToBottom = args[i + 1] == "connected-bottom"
+            demoBoardName = "Court 1"
         }
     }
     #endif
