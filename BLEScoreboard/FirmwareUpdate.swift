@@ -119,6 +119,7 @@ final class FirmwareUpdater: ObservableObject {
         guard !isRunning, let bundled, let secret = bundled.secret, !secret.isEmpty, peripheral != nil, characteristic != nil else { return }
         self.secret = secret
         image = bundled.image
+        print("[fwupdate] start: image \(image.count) bytes, write size \(peripheral?.maximumWriteValueLength(for: .withoutResponse) ?? 0)")
         offset = 0; acked = 0; endSent = false
         state = .authenticating
         touch()
@@ -129,7 +130,7 @@ final class FirmwareUpdater: ObservableObject {
     func cancel() {
         guard isRunning else { return }
         send(Data([opAbort]))
-        fail(String(localized: "Update cancelled."))
+        fail(String(localized: "Update cancelled."), withDetail: false)
     }
     
     func resetMessage() { if case .failed = state { state = .idle } else if state == .done { state = .idle } }
@@ -140,12 +141,14 @@ final class FirmwareUpdater: ObservableObject {
         touch()
         if op == opAck, data.count >= 5 {
             acked = Int(UInt32(data[1]) | UInt32(data[2]) << 8 | UInt32(data[3]) << 16 | UInt32(data[4]) << 24)
+            if acked % 65536 < 2048 { print("[fwupdate] confirmed \(acked)/\(image.count)") }
             if case .sending = state { state = .sending(min(1, Double(acked) / Double(max(image.count, 1)))) }
             pump()
             return
         }
         guard data.count >= 2 else { return }
         let status = data[1]
+        print("[fwupdate] board replied op \(op) status \(status)")
         switch op {
         case opBegin:
             guard status == 0, data.count >= 18 else { return fail(status: status) }
@@ -211,7 +214,12 @@ final class FirmwareUpdater: ObservableObject {
         state = final
     }
     
-    private func fail(_ message: String) { finish(.failed(message)) }
+    /// A failure message ends with where the transfer stopped, e.g. "[48000/1234000 sent, 45056 confirmed]", so a report says how far it got.
+    private func fail(_ message: String, withDetail: Bool = true) {
+        let detail = "[\(offset)/\(image.count) sent, \(acked) confirmed]"
+        print("[fwupdate] failed: \(message) \(detail)")
+        finish(.failed(withDetail ? "\(message) \(detail)" : message))
+    }
     
     private func fail(status: UInt8) {
         let message: String

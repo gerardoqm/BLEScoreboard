@@ -22,7 +22,7 @@ New to the app? Read the [tutorial](docs/TUTORIAL.md) ([en español](docs/TUTORI
 
 ## 🏷️ Versions
 
-The app has a version (`MARKETING_VERSION`, for example 1.0.0) and a build number (`CURRENT_PROJECT_VERSION`), shared by the iPhone and Apple Watch targets and shown on the Find Scoreboards screen and the Board Firmware page. Bump **patch** for fixes, **minor** for compatible features and **major** for breaking changes, and raise the build number for every build you install. The board firmware has its own version, kept in the firmware repository; the app offers an update when the firmware it carries is newer than the board's. See [CHANGELOG.md](CHANGELOG.md).
+The app has a version (`MARKETING_VERSION`, for example 1.0.0) and a build number (`CURRENT_PROJECT_VERSION`), shared by the iPhone and Apple Watch targets and shown on the Find Scoreboards screen and the Board Firmware page of the iPhone app, and at the bottom of the Apple Watch screen. Bump **patch** for fixes, **minor** for compatible features and **major** for breaking changes, and raise the build number for every build you install. The board firmware has its own version, kept in the firmware repository; the app offers an update when the firmware it carries is newer than the board's. See [CHANGELOG.md](CHANGELOG.md).
 
 Before building the app for a phone, run `tools/bundle-firmware.sh` to put the current firmware into `BLEScoreboard/Firmware/`. That folder contains your Wi-Fi and update passwords, so it is git-ignored: never commit it, and treat the built app as private.
 

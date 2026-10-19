@@ -63,6 +63,106 @@
         }
       }
     },
+    "⏸ Half Time!" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⏸ ¡Medio tiempo!"
+          }
+        }
+      }
+    },
+    "HALF TIME" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MEDIO TIEMPO"
+          }
+        }
+      }
+    },
+    "Previous period" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Periodo anterior"
+          }
+        }
+      }
+    },
+    "Goal by %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gol de %@"
+          }
+        }
+      }
+    },
+    "Goal icon" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ícono de gol"
+          }
+        }
+      }
+    },
+    "No icon" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin ícono"
+          }
+        }
+      }
+    },
+    "Play goal alert" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Probar alerta de gol"
+          }
+        }
+      }
+    },
+    "Update the board firmware to show the icon on the board." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualiza el firmware del tablero para mostrar el ícono en el tablero."
+          }
+        }
+      }
+    },
+    "The goal alert uses the game start alert's color and switch." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La alerta de gol usa el color y el interruptor de la alerta de inicio de partido."
+          }
+        }
+      }
+    },
+    "Update the board firmware to show emoji in team names on the board." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualiza el firmware del tablero para mostrar emojis en los nombres de los equipos."
+          }
+        }
+      }
+    },
     "🏁 Full Match Complete!" : {
       "localizations" : {
         "es" : {

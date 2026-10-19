@@ -32,6 +32,7 @@ struct ScanningRadarView: View {
 struct ContentView: View {
     @StateObject var ble = AdvancedBLEManager()
     @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
+    @Environment(\.scenePhase) private var scenePhase
     @State private var newBoardName = ""
     @State private var showFirmware = ProcessInfo.processInfo.arguments.contains("-showFirmware")  // also used for screenshots
     @State private var showColors = ProcessInfo.processInfo.arguments.contains("-showColors")  // also used for screenshots
@@ -121,15 +122,6 @@ struct ContentView: View {
                                         .accessibilityLabel(Text("Tutorial"))
                                     Button(LocalizedStringKey(ble.isSimulating ? "Exit simulator" : "Disconnect")) { ble.disconnect() }.font(.caption2).bold().foregroundColor(.red).buttonStyle(.bordered).controlSize(.mini).tint(.red)
                                 }
-                                if let battery = ble.batteryPercent {
-                                    HStack {
-                                        Image(systemName: battery < 15 ? "battery.0percent" : (battery < 50 ? "battery.50percent" : "battery.100percent"))
-                                            .foregroundColor(battery < 15 ? .red : (battery < 50 ? .orange : .green))
-                                        Text("Battery \(battery)%").font(.caption).bold()
-                                            .foregroundColor(battery < 15 ? .red : (battery < 50 ? .orange : .green))
-                                        Spacer()
-                                    }
-                                }
                                 if ble.boardFirmwareOutdated {
                                     Label("Board firmware is outdated. Update it to use all features.", systemImage: "exclamationmark.triangle.fill")
                                         .font(.caption2).foregroundColor(.orange)
@@ -138,6 +130,17 @@ struct ContentView: View {
                                     Image(systemName: "clock.badge.checkmark").foregroundColor(.purple)
                                     Text("Unit Name:").font(.subheadline).bold()
                                     TextField("e.g. Period, Cuarto, Tiempo", text: $ble.periodLabelText).textFieldStyle(.roundedBorder).font(.subheadline)
+                                    if let battery = ble.batteryPercent {
+                                        let tint: Color = battery < 15 ? .red : (battery < 50 ? .orange : .green)
+                                        HStack(spacing: 3) {
+                                            Image(systemName: battery < 15 ? "battery.0percent" : (battery < 50 ? "battery.50percent" : "battery.100percent"))
+                                            Text("\(battery)%").font(.caption).bold().monospacedDigit()
+                                        }
+                                        .foregroundColor(tint)
+                                        .fixedSize()
+                                        .accessibilityElement(children: .ignore)
+                                        .accessibilityLabel(Text("Battery \(battery)%"))
+                                    }
                                 }
                                 if !ble.isSimulating {
                                 HStack {
@@ -167,16 +170,24 @@ struct ContentView: View {
                                     }
                                     .buttonStyle(.plain)
                                 }
-                                Button { showColors = true } label: {
-                                    HStack {
-                                        Image(systemName: "paintpalette").foregroundColor(.pink)
-                                        Text("Panel Colors").font(.subheadline).bold()
-                                        Spacer()
-                                        Image(systemName: "chevron.right").font(.footnote).foregroundColor(.secondary)
+                                HStack(spacing: 10) {
+                                    Button { showColors = true } label: {
+                                        HStack {
+                                            Image(systemName: "paintpalette").foregroundColor(.pink)
+                                            Text("Panel Colors").font(.subheadline).bold()
+                                            Image(systemName: "chevron.right").font(.footnote).foregroundColor(.secondary)
+                                        }
+                                        .contentShape(Rectangle())
                                     }
-                                    .contentShape(Rectangle())
+                                    .buttonStyle(.plain)
+                                    Spacer(minLength: 4)
+                                    Image(systemName: "sun.max").foregroundColor(.yellow).accessibilityHidden(true)
+                                    // 10...120 is the range the firmware accepts; show it as a percentage of the maximum
+                                    Text("\(Int((ble.brightness / 120 * 100).rounded()))%")
+                                        .font(.subheadline).bold().monospacedDigit()
+                                    Stepper("LED Panel Brightness", value: $ble.brightness, in: 10...120, step: 5).labelsHidden()
                                 }
-                                .buttonStyle(.plain)
+                                .onChange(of: ble.brightness) { ble.syncDataToDisplay() }
                                 Divider()
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -189,66 +200,61 @@ struct ContentView: View {
                                         TextField("BLUES", text: $ble.awayName).textFieldStyle(.roundedBorder).multilineTextAlignment(.center)
                                     }
                                 }
+                                if ble.isConnected && ble.boardLacksNameIconSupport && ble.hasEmojiInNames {
+                                    Label("Update the board firmware to show emoji in team names on the board.", systemImage: "exclamationmark.triangle.fill")
+                                        .font(.caption2).foregroundColor(.orange)
+                                }
                             }
                             .padding().background(Color(.secondarySystemBackground)).cornerRadius(14).padding(.horizontal)
                             .onChange(of: ble.homeName) { ble.syncDataToDisplay() }
                             .onChange(of: ble.awayName) { ble.syncDataToDisplay() }
                             .onChange(of: ble.periodLabelText) { ble.syncDataToDisplay() }
                             
-                            Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) \(ble.periodLabelText) Match")
-                                .font(.title3).bold().foregroundColor(.purple).padding(.top, 5)
-                            
-                            HStack(spacing: 20) {
-                                VStack {
-                                    Text(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName.uppercased()).bold().foregroundColor(.blue).lineLimit(1)
-                                    Text("\(ble.homeScore)").font(.system(size: 55, weight: .black, design: .monospaced))
-                                    Stepper("", value: $ble.homeScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
-                                }.frame(maxWidth: .infinity).padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
-                                
-                                VStack {
-                                    Text(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName.uppercased()).bold().foregroundColor(.red).lineLimit(1)
-                                    Text("\(ble.awayScore)").font(.system(size: 55, weight: .black, design: .monospaced))
-                                    Stepper("", value: $ble.awayScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
-                                }.frame(maxWidth: .infinity).padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
-                            }.padding(.horizontal)
-                            
-                            VStack(spacing: 12) {
-                                Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) Countdown").font(.subheadline).foregroundColor(.secondary).bold()
-                                Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 40, weight: .bold, design: .monospaced))
-                                HStack(spacing: 15) {
+                                            // One box: period title, both scores and the countdown, to save screen space.
+                            VStack(spacing: 10) {
+                                Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) \(ble.periodLabelText) Match")
+                                    .font(.subheadline).bold().foregroundColor(.purple)
+                                HStack(spacing: 12) {
+                                    VStack(spacing: 2) {
+                                        Text(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName.uppercased()).font(.subheadline).bold().foregroundColor(.blue).lineLimit(1)
+                                        Text("\(ble.homeScore)").font(.system(size: 48, weight: .black, design: .monospaced))
+                                        Stepper("", value: $ble.homeScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
+                                    }.frame(maxWidth: .infinity)
+                                    VStack(spacing: 2) {
+                                        Text(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName.uppercased()).font(.subheadline).bold().foregroundColor(.red).lineLimit(1)
+                                        Text("\(ble.awayScore)").font(.system(size: 48, weight: .black, design: .monospaced))
+                                        Stepper("", value: $ble.awayScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
+                                    }.frame(maxWidth: .infinity)
+                                }
+                                Divider()
+                                HStack(spacing: 10) {
+                                    Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 34, weight: .bold, design: .monospaced))
+                                    Spacer(minLength: 4)
                                     Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
-                                    Button("Reset Clock") { ble.resetClockManual(minutes: lastSavedMinutes) }.buttonStyle(.bordered)
+                                    Button { ble.resetClockManual(minutes: lastSavedMinutes) } label: { Image(systemName: "arrow.counterclockwise") }
+                                        .accessibilityLabel(Text("Reset Clock")).buttonStyle(.bordered)
                                     Stepper("Min", value: Binding(get: { ble.timerMin }, set: { newValue in ble.timerMin = newValue; lastSavedMinutes = newValue; ble.syncDataToDisplay() }), in: 1...90).labelsHidden()
                                 }
-                            }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
-                            
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Text("\(ble.periodLabelText):").font(.subheadline).bold()
-                                    Picker("", selection: $ble.period) {
-                                        ForEach(1...ble.totalPeriods, id: \.self) { Text("\($0)").tag($0) }
-                                    }.pickerStyle(.menu).onChange(of: ble.period) { ble.syncDataToDisplay() }
+                                Divider()
+                                HStack(spacing: 8) {
+                                    Text("\(ble.periodLabelText): \(ble.period)").font(.subheadline).bold().lineLimit(1)
+                                    Button { ble.changePeriod(by: -1) } label: { Image(systemName: "chevron.left") }
+                                        .accessibilityLabel(Text("Previous period"))
+                                        .disabled(ble.period <= 1)
+                                        .buttonStyle(.bordered).controlSize(.small)
+                                    Button { ble.changePeriod(by: 1) } label: { Image(systemName: "chevron.right") }
+                                        .accessibilityLabel(Text("Next period"))
+                                        .disabled(ble.period >= ble.totalPeriods)
+                                        .buttonStyle(.bordered).controlSize(.small)
                                     Spacer()
                                     Text("Total:").font(.subheadline).bold()
                                     Picker("", selection: $ble.totalPeriods) {
                                         ForEach(1...9, id: \.self) { Text("\($0)").tag($0) }
                                     }.pickerStyle(.menu).onChange(of: ble.totalPeriods) {
-                                        if ble.period > ble.totalPeriods { ble.period = ble.totalPeriods }
+                                        if ble.period > ble.totalPeriods { ble.setPeriod(ble.totalPeriods) }
                                         ble.syncDataToDisplay()
                                     }
                                 }
-                                Divider()
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("LED Panel Brightness").font(.caption).bold()
-                                        // 10...120 is the range the firmware accepts; show it as a percentage of the maximum
-                                        Text("\(Int((ble.brightness / 120 * 100).rounded()))%")
-                                            .font(.title3).bold().monospacedDigit()
-                                    }
-                                    Spacer()
-                                    Stepper("LED Panel Brightness", value: $ble.brightness, in: 10...120, step: 5).labelsHidden()
-                                }
-                                .onChange(of: ble.brightness) { ble.syncDataToDisplay() }
                             }.padding().background(Color(.secondarySystemBackground)).cornerRadius(12).padding(.horizontal)
                             .id("matchSettings")
                             
@@ -269,6 +275,25 @@ struct ContentView: View {
             
             // Tutorial sheet is attached below on the ZStack
             // FIXED: NATIVE IPHONE VISUAL ALERT OVERLAY HUD DISPLAY
+            // Goal animation: big text that pops in over the score, tinted with the scoring team's color
+            if ble.showGoal {
+                VStack(spacing: 6) {
+                    if !ble.goalIcon.isEmpty { Text(ble.goalIcon).font(.system(size: 54)) }
+                    Text(ble.goalText.uppercased())
+                        .font(.system(size: 30, weight: .black, design: .rounded))
+                        .multilineTextAlignment(.center)
+                        .minimumScaleFactor(0.5).lineLimit(2)
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 28).padding(.vertical, 22)
+                .background((ble.goalByHome ? Color.blue : Color.red).opacity(0.92), in: RoundedRectangle(cornerRadius: 24))
+                .shadow(radius: 12)
+                .padding(.horizontal, 24)
+                .transition(.scale(scale: 0.4).combined(with: .opacity))
+                .allowsHitTesting(false)
+                .accessibilityElement(children: .combine)
+            }
+            
             if ble.showAlertBanner {
                 VStack {
                     HStack {
@@ -288,5 +313,6 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showTutorial) { TutorialView() }
+        .onChange(of: scenePhase) { _, phase in if phase == .active { ble.refreshClockAfterBackground() } }
     }
 }
