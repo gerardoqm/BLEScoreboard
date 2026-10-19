@@ -4,3 +4,6 @@ xcuserdata/
 .DS_Store
 build/
 DerivedData/
+
+# Firmware image bundled into the app by tools/bundle-firmware.sh. It contains the Wi-Fi and update passwords: never commit it.
+BLEScoreboard/Firmware/

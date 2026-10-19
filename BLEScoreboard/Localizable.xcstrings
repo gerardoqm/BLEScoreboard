@@ -1020,6 +1020,326 @@
           }
         }
       }
+    },
+    "Board Firmware": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Firmware del marcador"
+          }
+        }
+      }
+    },
+    "Update available": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualización disponible"
+          }
+        }
+      }
+    },
+    "On the board": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En el marcador"
+          }
+        }
+      }
+    },
+    "In this app": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En esta app"
+          }
+        }
+      }
+    },
+    "Unknown": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconocido"
+          }
+        }
+      }
+    },
+    "No firmware in this app": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta app no incluye firmware"
+          }
+        }
+      }
+    },
+    "Protocol %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protocolo %lld"
+          }
+        }
+      }
+    },
+    "Protocol %lld, build %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protocolo %1$lld, compilación %2$lld"
+          }
+        }
+      }
+    },
+    "A newer firmware is available for this board.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hay un firmware más nuevo para este marcador."
+          }
+        }
+      }
+    },
+    "This board needs a one-time USB update before it can update over Bluetooth.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este marcador necesita una actualización por USB, una sola vez, antes de poder actualizarse por Bluetooth."
+          }
+        }
+      }
+    },
+    "This copy of the app does not include a firmware image. Build it with tools/bundle-firmware.sh.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta copia de la app no incluye una imagen de firmware. Genérala con tools/bundle-firmware.sh."
+          }
+        }
+      }
+    },
+    "Update password": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña de actualización"
+          }
+        }
+      }
+    },
+    "The same password you use for Wi-Fi and USB updates. It stays on this phone, in the Keychain, and is never sent over Bluetooth.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La misma contraseña que usas para las actualizaciones por Wi-Fi y USB. Se queda en este teléfono, en el llavero, y nunca se envía por Bluetooth."
+          }
+        }
+      }
+    },
+    "Checking the password...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando la contraseña..."
+          }
+        }
+      }
+    },
+    "Preparing the board...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparando el marcador..."
+          }
+        }
+      }
+    },
+    "Sending firmware %lld%%": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviando firmware %lld%%"
+          }
+        }
+      }
+    },
+    "Checking and installing...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando e instalando..."
+          }
+        }
+      }
+    },
+    "Done. The board is restarting with the new firmware.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo. El marcador se está reiniciando con el nuevo firmware."
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        }
+      }
+    },
+    "Update board firmware": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar firmware del marcador"
+          }
+        }
+      }
+    },
+    "Reinstall board firmware": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinstalar firmware del marcador"
+          }
+        }
+      }
+    },
+    "Keep the phone next to the board and this screen open. It takes one to three minutes, the panel shows a progress bar, and the board restarts when it is done. If anything goes wrong the board keeps its current firmware.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantén el teléfono junto al marcador y esta pantalla abierta. Tarda de uno a tres minutos, el panel muestra una barra de progreso y el marcador se reinicia al terminar. Si algo sale mal, el marcador conserva su firmware actual."
+          }
+        }
+      }
+    },
+    "The Bluetooth connection was lost during the update.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se perdió la conexión Bluetooth durante la actualización."
+          }
+        }
+      }
+    },
+    "Update cancelled.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualización cancelada."
+          }
+        }
+      }
+    },
+    "The update stalled. Move the phone closer to the board and try again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La actualización se detuvo. Acerca el teléfono al marcador e inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "Wrong update password.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña de actualización incorrecta."
+          }
+        }
+      }
+    },
+    "Too many wrong tries. Wait 30 seconds and try again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demasiados intentos fallidos. Espera 30 segundos e inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "The firmware does not fit on the board.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El firmware no cabe en el marcador."
+          }
+        }
+      }
+    },
+    "The board could not write the firmware.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El marcador no pudo escribir el firmware."
+          }
+        }
+      }
+    },
+    "The firmware did not pass the board's check, so nothing was changed.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El firmware no pasó la comprobación del marcador, así que no se cambió nada."
+          }
+        }
+      }
+    },
+    "The board was busy. Try again.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El marcador estaba ocupado. Inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "Update failed (code %lld).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La actualización falló (código %lld)."
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -36,6 +36,10 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     /// The board's own clock, from its telemetry, used to show whether it is in sync with the app.
     @Published var boardClock: BoardClock?
     @Published var panelVisibility: [PanelElement: Bool] = PanelVisibilityStore.load()
+    /// Firmware build number reported by the board (protocol 5 and later).
+    @Published var boardFirmwareBuild: Int?
+    /// Sends the bundled firmware to the board over Bluetooth.
+    let firmwareUpdater = FirmwareUpdater()
     private var colorSendWork: DispatchWorkItem?
     private var visibilitySendWork: DispatchWorkItem?
     
@@ -44,9 +48,16 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var boardProtocolVersion: Int? = nil
     @Published var telemetryReceived = false
     /// Telemetry layout version this app expects. Keep in sync with PROTOCOL_VERSION in scoreboard_BT_ESP32S3.ino.
-    static let expectedProtocolVersion = 4
+    static let expectedProtocolVersion = 5
     /// Colors need protocol 3. Unknown until the board's first telemetry arrives, so never warn before that.
     var boardLacksColorSupport: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < 3 }
+    /// True when the image inside the app is newer than what the board reports.
+    var firmwareUpdateAvailable: Bool {
+        guard let bundled = firmwareUpdater.bundled, let boardProtocol = boardProtocolVersion else { return false }
+        if boardProtocol != bundled.protocolVersion { return boardProtocol < bundled.protocolVersion }
+        return (boardFirmwareBuild ?? 0) < bundled.build
+    }
+    
     /// Hiding elements needs protocol 4.
     var boardLacksHideSupport: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < 4 }
     var boardFirmwareOutdated: Bool { telemetryReceived && (boardProtocolVersion ?? 1) < Self.expectedProtocolVersion }
@@ -63,6 +74,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     let serviceUUID = CBUUID(string: "12345678-1234-1234-1234-123456789012")
     let charUUID    = CBUUID(string: "87654321-4321-4321-4321-210987654321")
+    let otaUUID     = CBUUID(string: "87654321-4321-4321-4321-210987654323")
     // CONFIG characteristic: [cmd, args...] writes, [cmd, status] notifications (status 0 = OK).
     // Keep in sync with scoreboard_BT_ESP32S3.ino.
     let configUUID  = CBUUID(string: "87654321-4321-4321-4321-210987654322")
@@ -147,6 +159,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     func syncDataToDisplay() {
         syncWatchData()  // the watch follows the phone even when no board is linked
+        guard !firmwareUpdater.isRunning else { return }   // keep the link free for the firmware transfer
         guard let peripheral = connectedPeripheral, let characteristic = targetCharacteristic else { return }
         
         var packet = Data([
@@ -269,14 +282,20 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        if characteristic.uuid == otaUUID, let data = characteristic.value {
+            DispatchQueue.main.async { self.firmwareUpdater.handle(data) }
+            return
+        }
         if characteristic.uuid == charUUID, let data = characteristic.value, data.count >= 5 {
             // [min, sec, running, period, battery%] (+ [flags, protocolVersion] from protocol v2)
             let battery = Int(data[4]), version = data.count >= 7 ? Int(data[6]) : 1
+            let build: Int? = data.count >= 8 ? Int(data[7]) : nil
             let clock = BoardClock(minutes: Int(data[0]), seconds: Int(data[1]), running: data[2] == 1, period: Int(data[3]), receivedAt: Date())
             DispatchQueue.main.async {
                 self.boardClock = clock
                 self.batteryPercent = min(battery, 100)
                 self.boardProtocolVersion = version
+                self.boardFirmwareBuild = build
                 self.telemetryReceived = true
             }
             return
@@ -341,10 +360,17 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             connect(to: peripheral)
         }
     }
+    /// The Bluetooth stack can take more firmware chunks.
+    func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) { firmwareUpdater.pump() }
+    
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) { isConnected = true; peripheral.discoverServices([serviceUUID]) }
-    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) { guard let services = peripheral.services else { return }; for service in services { peripheral.discoverCharacteristics([charUUID, configUUID], for: service) } }
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) { guard let services = peripheral.services else { return }; for service in services { peripheral.discoverCharacteristics([charUUID, configUUID, otaUUID], for: service) } }
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
+        for characteristic in characteristics where characteristic.uuid == otaUUID {
+            peripheral.setNotifyValue(true, for: characteristic)
+            firmwareUpdater.configure(peripheral: peripheral, characteristic: characteristic)
+        }
         for characteristic in characteristics where characteristic.uuid == configUUID {
             configCharacteristic = characteristic
             peripheral.setNotifyValue(true, for: characteristic)
@@ -362,6 +388,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         targetCharacteristic = nil
         configCharacteristic = nil
         batteryPercent = nil
+        boardFirmwareBuild = nil
+        firmwareUpdater.configure(peripheral: nil, characteristic: nil)
         boardClock = nil
         boardProtocolVersion = nil
         telemetryReceived = false
@@ -474,6 +502,15 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             periodLabelText = String(localized: "Period")
             batteryPercent = 82; boardProtocolVersion = Self.expectedProtocolVersion; telemetryReceived = true
             demoScrollToBottom = args[i + 1] == "connected-bottom"
+            if let f = args.firstIndex(of: "-fwDemo"), f + 1 < args.count {
+                switch args[f + 1] {
+                case "available": boardProtocolVersion = 4; boardFirmwareBuild = nil; firmwareUpdater.demoSupported = true
+                case "sending": boardProtocolVersion = 4; firmwareUpdater.setDemo(.sending(0.42))
+                case "done": firmwareUpdater.setDemo(.done)
+                case "failed": firmwareUpdater.setDemo(.failed(String(localized: "Wrong update password.")))
+                default: break
+                }
+            }
         }
     }
     #endif

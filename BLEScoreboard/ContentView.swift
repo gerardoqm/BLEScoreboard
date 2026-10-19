@@ -33,6 +33,7 @@ struct ContentView: View {
     @StateObject var ble = AdvancedBLEManager()
     @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
     @State private var newBoardName = ""
+    @State private var showFirmware = ProcessInfo.processInfo.arguments.contains("-showFirmware")  // also used for screenshots
     @State private var showColors = ProcessInfo.processInfo.arguments.contains("-showColors")  // also used for screenshots
     @State private var showTutorial = ProcessInfo.processInfo.arguments.contains("-showTutorial")  // also used for screenshots
     
@@ -152,6 +153,19 @@ struct ContentView: View {
                                     Text(ble.renameStatus).font(.caption2).foregroundColor(.secondary)
                                 }
                                 }
+                                if ble.isConnected {
+                                    Button { showFirmware = true } label: {
+                                        HStack {
+                                            Image(systemName: "arrow.down.circle").foregroundColor(.blue)
+                                            Text("Board Firmware").font(.subheadline).bold()
+                                            Spacer()
+                                            if ble.firmwareUpdateAvailable { Text("Update available").font(.caption2).bold().foregroundColor(.blue) }
+                                            Image(systemName: "chevron.right").font(.footnote).foregroundColor(.secondary)
+                                        }
+                                        .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                }
                                 Button { showColors = true } label: {
                                     HStack {
                                         Image(systemName: "paintpalette").foregroundColor(.pink)
@@ -247,6 +261,7 @@ struct ContentView: View {
                     }
                     .onChange(of: ble.isConnected) { newBoardName = "" }
                     .navigationDestination(isPresented: $showColors) { PanelColorsView(ble: ble) }
+                    .navigationDestination(isPresented: $showFirmware) { FirmwareUpdateView(ble: ble, updater: ble.firmwareUpdater) }
                     }
                 }
             }
