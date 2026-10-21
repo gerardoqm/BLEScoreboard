@@ -2,6 +2,17 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.3.0 (20)
+- The end of the match is announced on the panel ("FULL TIME" / "FIN DEL PARTIDO"): the app sends the alert, and with firmware 1.3.0 the board also announces it by itself when its clock reaches zero in the last period, so it works even if the phone is gone. The app sends the board the text in its language.
+- The bundled firmware is 1.3.0.
+
+## 1.3.0 (19)
+- The match title uses the same ordinals and the unit name: "Match: 3rd of 4 quarters", "Partido: 1er de 4 tiempos" (the unit name is plural unless there is a single period).
+
+## 1.3.0 (18)
+- Period announcements use ordinals: "1st quarter", "2nd quarter", "3rd quarter" and "half time" in English, "1er tiempo", "2do periodo", "3er cuarto" and "medio tiempo" in Spanish, with the unit name you set. The first period now reads "1st quarter" instead of "GAME START" on the panel. The phone banner and the match title use the same ordinals.
+- The scanning radar is drawn from the clock instead of a stored animation, so it can no longer end up off-center or out of step after the screen is rebuilt (for example after switching language).
+
 ## 1.3.0 (17)
 - The countdown and the Start button no longer wrap on narrower phones (iPhone 17 Pro and smaller).
 - New tutorial screenshots in English and Spanish (match screen, landscape, firmware page, watch with the countdown), made with `tools/take-screenshots.sh`; the tutorials describe the current screens and add the firmware, landscape and language sections.

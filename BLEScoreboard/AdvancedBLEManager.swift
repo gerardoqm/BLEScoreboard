@@ -286,6 +286,14 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         let names = boardSupportsNameIcons ? [panelText(homeName, firstSlot: 0), panelText(awayName, firstSlot: 2)] : [homeName, awayName].map(panelSafe)
         let stringPayload = (names + [ratioLabel, lowerClockBannerLabel].map(panelSafe)).joined(separator: "|")
         if boardSupportsNameIcons, let config = configCharacteristic { sendNameIcons(peripheral: peripheral, config: config) }
+        if telemetryReceived, (boardProtocolVersion ?? 0) >= 9, let config = configCharacteristic {
+            // the board announces the end of the match on its own, in the app's language
+            let endText = panelAlertText(.matchEnd)
+            if endText != endTextSentToBoard {
+                endTextSentToBoard = endText
+                peripheral.writeValue(Data([cmdEndText]) + Data(endText.utf8), for: config, type: .withResponse)
+            }
+        }
         if let textData = stringPayload.data(using: .utf8) { packet.append(textData) }
         
         peripheral.writeValue(packet, for: characteristic, type: .withResponse)
@@ -332,15 +340,19 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     /// Boards with protocol 8 take 32 characters of alert text, older ones 16 (and refuse longer text). No board: the preview shows all 32.
     private var alertTextLimit: Int { (!isConnected || (boardProtocolVersion ?? 0) >= 8) ? 32 : 16 }
     
+    /// "1st quarter", "2do periodo"...: the ordinal and the unit name the user chose; the plain word only if the name has nothing the panel can show.
+    private func periodAnnouncement(_ number: Int) -> String {
+        let label = panelSafe(periodLabelText).trimmingCharacters(in: .whitespaces)
+        return "\(ordinal(number)) \(label.isEmpty ? tr("Period") : label)"
+    }
+    
     func panelAlertText(_ kind: PanelAlertKind) -> String {
         let text: String
         switch kind {
-        case .gameStart: text = tr("GAME START")
-        case .periodStart(let number):
-            // the unit name the user chose ("Quarter", "Cuarto"...); the plain word only if it has nothing the panel can show
-            let label = panelSafe(periodLabelText).trimmingCharacters(in: .whitespaces)
-            text = label.isEmpty ? tr("PERIOD \(number)") : "\(label) \(number)"
+        case .gameStart: text = periodAnnouncement(1)
+        case .periodStart(let number): text = periodAnnouncement(number)
         case .halfTime: text = tr("HALF TIME")
+        case .matchEnd: text = tr("FULL TIME")
         case .goal(let label): text = label
         }
         return String(panelSafe(text).uppercased().split(separator: " ", omittingEmptySubsequences: true).joined(separator: " ").prefix(alertTextLimit))
@@ -407,6 +419,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     }
     
     // MARK: - Emoji in team names
+    private let cmdEndText: UInt8 = 0x08    // [0x08] + 1-32 ASCII characters: what the board scrolls by itself when the last period runs out
+    private var endTextSentToBoard: String?
     private let cmdNameIcon: UInt8 = 0x07    // [0x07, slot, first row] + rows of 10 RGB565 pixels (big-endian); [0x07, slot] clears the slot
     private var nameIconsSent = [String](repeating: "", count: 4)
     private var iconCache: [String: [UInt16]] = [:]
@@ -509,7 +523,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 if let config = self.configCharacteristic {
                     peripheral.writeValue(Data([self.cmdApply]), for: config, type: .withResponse)
                 }
-            case (self.cmdColors, _), (self.cmdAlert, _), (self.cmdVisibility, _), (self.cmdAlertIcon, _), (self.cmdNameIcon, _):
+            case (self.cmdColors, _), (self.cmdAlert, _), (self.cmdVisibility, _), (self.cmdAlertIcon, _), (self.cmdNameIcon, _), (self.cmdEndText, _):
                 break   // colors need no feedback; boards without protocol 3 are reported by the version check
             case (self.cmdApply, 0):
                 self.renameStatus = tr("Renamed. The board is restarting...")
@@ -591,6 +605,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         configCharacteristic = nil
         iconSentToBoard = nil
         nameIconsSent = ["", "", "", ""]
+        endTextSentToBoard = nil
         batteryPercent = nil
         boardFirmwareVersion = nil
         firmwareUpdater.configure(peripheral: nil, characteristic: nil)
@@ -650,10 +665,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     enum MatchEventType { case startEvent, periodAdvance, matchComplete, halfTime }
     
     private func triggerHapticAlert(type: MatchEventType) {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .ordinal
-        formatter.locale = AppLanguage.current.locale
-        let ordinalString = formatter.string(from: NSNumber(value: period)) ?? "\(period)"
+        let ordinalString = ordinal(period)
         
         // Configure Custom Display Text Labels
         switch type {
@@ -680,6 +692,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             for delay in [0.2, 0.4] { DispatchQueue.main.asyncAfter(deadline: .now() + delay) { generator.impactOccurred() } }
         }
         if type == .halfTime { sendPanelAlert(.halfTime) }
+        if type == .matchComplete { sendPanelAlert(.matchEnd) }          // the panel says it too, not only the app banner
         sendAlertPayloadToWatch(type: type, banner: alertBannerTitle)
     }
     
@@ -780,6 +793,7 @@ enum PanelAlertKind {
     case periodStart(Int)
     case halfTime
     case goal(String)   // the full text, already translated
+    case matchEnd       // the last period ran out: "FULL TIME"
 }
 
 /// The clock the board reports in its telemetry, with the time it was received.

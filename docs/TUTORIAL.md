@@ -40,7 +40,7 @@ Tap **Panel Colors** in the top card. Pick the color of the timer (running and s
 
 ## 6. Start alerts
 
-When a game starts (period 1) or a later period starts, the panel flashes its border and scrolls `GAME START` or `PERIOD 2` across the screen at triple size, in the alert's color, then returns to the scoreboard. The alert plays when the clock starts from the full period length; resuming after a pause does not repeat it. On the colors page, **Play game start alert** and **Play period start alert** try them in the preview and on your board.
+When a game starts (period 1) or a later period starts, the panel flashes its border and scrolls the period name with its ordinal (`1ST QUARTER`, `2ND QUARTER`, ... or whatever unit name you set) across the screen at triple size, in the alert's color, then returns to the scoreboard. The alert plays when the clock starts from the full period length; resuming after a pause does not repeat it. On the colors page, **Play game start alert** and **Play period start alert** try them in the preview and on your board.
 
 <img src="images/6-alerts-en.png" width="280" alt="A start alert playing in the panel preview">
 

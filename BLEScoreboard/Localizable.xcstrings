@@ -183,6 +183,26 @@
         }
       }
     },
+    "Match: %@ of %lld %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partido: %1$@ de %2$lld %3$@"
+          }
+        }
+      }
+    },
+    "FULL TIME" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FIN DEL PARTIDO"
+          }
+        }
+      }
+    },
     "🏁 Full Match Complete!" : {
       "localizations" : {
         "es" : {

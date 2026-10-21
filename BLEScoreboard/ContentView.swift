@@ -2,29 +2,41 @@ import SwiftUI
 import CoreBluetooth
 
 /// Pulsing radar rings shown while the app scans for scoreboards.
+/// The rings are drawn from the clock, not from a stored animation, so they always start centered and in step
+/// (an implicit repeat-forever animation could get stuck half way after the screen was rebuilt, for example on a language change).
 struct ScanningRadarView: View {
-    @State private var pulse = false
     /// `-staticRadar` freezes the rings in an evenly spaced pose, used for tutorial screenshots.
     private let frozen = ProcessInfo.processInfo.arguments.contains("-staticRadar")
-    private let frozenScale: [CGFloat] = [0.55, 0.95, 1.35]
-    private let frozenOpacity: [Double] = [0.9, 0.55, 0.25]
+    private let frozenPhase: [Double] = [0.2, 0.55, 0.9]
+    private let period = 2.4          // seconds for one ring to grow and fade
+    private let spacing = 0.8         // delay between rings
+    
+    private func phase(_ ring: Int, at date: Date) -> Double {
+        if frozen { return frozenPhase[ring] }
+        let t = date.timeIntervalSinceReferenceDate - Double(ring) * spacing
+        return t.truncatingRemainder(dividingBy: period) / period
+    }
     
     var body: some View {
-        ZStack {
-            ForEach(0..<3, id: \.self) { i in
-                Circle()
-                    .stroke(Color.green.opacity(0.7), lineWidth: 3)
-                    .frame(width: 140, height: 140)
-                    .scaleEffect(frozen ? frozenScale[i] : (pulse ? 1.6 : 0.3))
-                    .opacity(frozen ? frozenOpacity[i] : (pulse ? 0 : 0.9))
-                    .animation(frozen ? nil : .easeOut(duration: 2.4).repeatForever(autoreverses: false).delay(Double(i) * 0.8), value: pulse)
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: frozen)) { timeline in
+            ZStack {
+                ForEach(0..<3, id: \.self) { ring in
+                    let p = phase(ring, at: timeline.date)
+                    let eased = 1 - (1 - p) * (1 - p)          // ease out
+                    Circle()
+                        .stroke(Color.green.opacity(0.7), lineWidth: 3)
+                        .frame(width: 140, height: 140)
+                        .scaleEffect(0.3 + 1.3 * eased)
+                        .opacity(0.9 * (1 - p))
+                }
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundColor(.green)
             }
-            Image(systemName: "dot.radiowaves.left.and.right")
-                .font(.system(size: 34, weight: .semibold))
-                .foregroundColor(.green)
+            .frame(width: 220, height: 220)
         }
         .frame(width: 220, height: 220)
-        .onAppear { if !frozen { pulse = true } }
+        .clipped()
         .accessibilityHidden(true)
     }
 }
@@ -49,12 +61,22 @@ struct ContentView: View {
         }
     }
     
-    func getOrdinalLabel(p: Int, total: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .ordinal
-        formatter.locale = AppLanguage.current.locale
-        let ordinalStr = formatter.string(from: NSNumber(value: p)) ?? "\(p)"
-        return tr("\(ordinalStr) of \(total)")
+    /// The unit name in the plural: "quarter" -> "quarters", "half" -> "halves", "tiempo" -> "tiempos", "mitad" -> "mitades".
+    private func plural(_ word: String) -> String {
+        if AppLanguage.current.code == "es" {
+            return word + ((word.last.map { "aeiouáéíóú".contains($0) } ?? true) ? "s" : "es")
+        }
+        if ["s", "x", "z", "ch", "sh"].contains(where: { word.hasSuffix($0) }) { return word + "es" }
+        if word.hasSuffix("y"), let before = word.dropLast().last, !"aeiou".contains(before) { return word.dropLast() + "ies" }
+        if word.hasSuffix("f") { return word.dropLast() + "ves" }
+        return word + "s"
+    }
+    
+    /// The match title: "Match: 3rd of 4 quarters", "Partido: 1er de 4 tiempos" (the unit name is plural unless there is a single period).
+    func matchTitle(period: Int, total: Int) -> String {
+        let unit = ble.periodLabelText.trimmingCharacters(in: .whitespaces).lowercased()
+        let name = unit.isEmpty ? tr("Period").lowercased() : unit
+        return tr("Match: \(ordinal(period)) of \(total) \(total == 1 ? name : plural(name))")
     }
     
     var body: some View {
@@ -217,7 +239,7 @@ struct ContentView: View {
                             
                                             // One box: period title, both scores and the countdown, to save screen space.
                             VStack(spacing: 10) {
-                                Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) \(ble.periodLabelText) Match")
+                                Text(verbatim: matchTitle(period: ble.period, total: ble.totalPeriods))
                                     .font(.subheadline).bold().foregroundColor(.purple)
                                 HStack(spacing: 12) {
                                     VStack(spacing: 2) {

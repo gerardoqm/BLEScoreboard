@@ -40,7 +40,7 @@ Toca **Colores del panel** en la tarjeta superior. Elige el color del reloj (en 
 
 ## 6. Alertas de inicio
 
-Cuando empieza un partido (periodo 1) o un periodo posterior, el panel hace parpadear su borde y desplaza `INICIO PARTIDO` o `PERIODO 2` por la pantalla a triple tamaño, en el color de la alerta, y luego vuelve al marcador. La alerta suena cuando el reloj arranca desde la duración completa del periodo; al reanudar tras una pausa no se repite. En la página de colores, **Probar alerta de inicio** y **Probar alerta de periodo** las prueban en la vista previa y en tu marcador.
+Cuando empieza un partido (periodo 1) o un periodo posterior, el panel hace parpadear su borde y desplaza el nombre del periodo con su ordinal (`1ER TIEMPO`, `2DO PERIODO`, `3ER CUARTO`... o el nombre que hayas puesto) por la pantalla a triple tamaño, en el color de la alerta, y luego vuelve al marcador. La alerta suena cuando el reloj arranca desde la duración completa del periodo; al reanudar tras una pausa no se repite. En la página de colores, **Probar alerta de inicio** y **Probar alerta de periodo** las prueban en la vista previa y en tu marcador.
 
 <img src="images/6-alerts-es.png" width="280" alt="Una alerta de inicio reproduciéndose en la vista previa del panel">
 

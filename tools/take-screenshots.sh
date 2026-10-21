@@ -34,7 +34,8 @@ xcrun simctl status_bar "$PHONE" override --time 9:41 --batteryState charged --b
 
 shot() {   # device, bundle id, language, name, width, launch arguments...
   local dev=$1 bid=$2 lang=$3 name=$4 width=$5; shift 5
-  local loc=(-AppleLanguages "($lang)" -AppleLocale "$([ "$lang" = es ] && echo es_MX || echo en_US)")
+  local loc    # macOS ships bash 3.2, which cannot declare and fill an array in one `local`
+  loc=(-AppleLanguages "($lang)" -AppleLocale "$([ "$lang" = es ] && echo es_MX || echo en_US)")
   xcrun simctl launch --terminate-running-process "$dev" "$bid" "${loc[@]}" "$@" >/dev/null
   sleep 8
   xcrun simctl io "$dev" screenshot "$IMAGES/$name-$lang.png" >/dev/null 2>&1
