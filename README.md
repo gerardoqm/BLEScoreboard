@@ -53,30 +53,16 @@ Before building the app for a phone, run `tools/bundle-firmware.sh` to put the c
 
 
 
- 🧠 SYSTEM DATA PIPELINE & OVER-THE-AIR ARCHITECTURE
- ───────────────────────────────────────────────────
+## 🧠 System data pipeline and over-the-air architecture
 
- ┌─────────────────┐           (WatchConnectivity)          ┌────────────────┐
- │   APPLE WATCH   │ ◄────────────────────────────────────► │   IPHONE APP   │
- │ REMOTE EXTENSION│        Scores, Periods & Controls      │  (Master Clock │
- └─────────────────┘                                        │  & UI Engine)  │
-                                                            └───────┬────────┘
-                                                                    │
-                                                                    │ (Bluetooth LE)
-                                                                    │ Transmits 8-Byte Packet
-                                                                    │ Receives 7-Byte Notify
-                                                                    ▼
-                                                            ┌────────────────┐
-                                                            │    ESP32-S3    │
-                                                            │ DISPLAY SERVER │
-                                                            └───────┬────────┘
-                                                                    │
-                                                                    │ (HUB75 Flat Ribbon)
-                                                                    ▼
-                                                            ┌────────────────┐
-                                                            │ 80x40 P4 PANEL │
-                                                            │ (Graphics Out) │
-                                                            └────────────────┘
+<p align="center"><img src="docs/system-pipeline.svg" alt="Pipeline: the Apple Watch and the iPhone app exchange messages through WatchConnectivity; the iPhone talks to the ESP32-S3 over Bluetooth LE on three characteristics (STATE, CONFIG, OTA); the ESP32-S3 drives the 80x40 LED panel through the HUB75 ribbon; firmware can also be flashed over USB or Wi-Fi" width="760"></p>
+
+- **Apple Watch ↔ iPhone (WatchConnectivity).** The watch sends only what the user just changed (scores, period, start/pause, reset). The phone sends the whole match state, both as a live message and as a saved context the watch reads when it wakes, plus the team names.
+- **The iPhone owns the clock.** It counts down against the real time the clock will reach zero, so it stays right when iOS suspends the app, and a notification announces half time and the end of the match even when the app is not on screen.
+- **STATE characteristic.** Phone to board: an 8-byte header (scores, period, brightness, clock, running, total periods) followed by the team names. Board to phone: a 10-byte telemetry notification every 2 seconds (clock, period, battery, flags, protocol version, firmware version).
+- **CONFIG characteristic.** Colors, hide/show, the start, period, half time and goal alerts, the goal and team-name emoji pictures, and board renaming. The board saves colors and visibility in flash.
+- **OTA characteristic.** The firmware update over Bluetooth: a challenge handshake with the key the app carries, then the image in 180-byte chunks with a progress acknowledgement. The board switches Wi-Fi off while it runs, checks a CRC-32 and restarts by itself.
+- **ESP32-S3.** A display server: it draws the 80x40 frame, counts its own seconds so the clock keeps running if the phone drops, and drives the status LED.
 
  📶 BLUETOOTH RADIO SYSTEM CHECK (Onboard WS2812B RGB NeoPixel)
  ──────────────────────────────────────────────────────────────
@@ -90,3 +76,5 @@ Before building the app for a phone, run `tools/bundle-firmware.sh` to put the c
          │ (If Accidental Drop Occurs)
          │
  [LINKED_CONNECTED] ──► (Solid Green 🟢) ──► BLE Sync Handshake Active.
+
+ During a Bluetooth firmware update the LED blinks Red 🔴; when the new image is verified it turns Green and the board restarts by itself.
