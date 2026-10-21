@@ -34,7 +34,7 @@ final class WatchModel: NSObject, ObservableObject, WCSessionDelegate {
     override init() {
         super.init()
         // Sample state for tutorial screenshots in the simulator (`-demo`).
-        if ProcessInfo.processInfo.arguments.contains("-demo") { homeScore = 12; awayScore = 9; period = 2 }
+        if ProcessInfo.processInfo.arguments.contains("-demo") { homeScore = 12; awayScore = 9; period = 2; homeName = "LION"; awayName = "BEAR"; minutes = 7; seconds = 45 }
         if WCSession.isSupported() {
             WCSession.default.delegate = self
             WCSession.default.activate()

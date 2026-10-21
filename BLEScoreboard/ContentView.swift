@@ -233,9 +233,9 @@ struct ContentView: View {
                                 }
                                 Divider()
                                 HStack(spacing: 10) {
-                                    Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 34, weight: .bold, design: .monospaced))
+                                    Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 34, weight: .bold, design: .monospaced)).lineLimit(1).minimumScaleFactor(0.6).layoutPriority(1)
                                     Spacer(minLength: 4)
-                                    Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
+                                    Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green).lineLimit(1).fixedSize(horizontal: true, vertical: false)
                                     Button { ble.resetClockManual(minutes: lastSavedMinutes) } label: { Image(systemName: "arrow.counterclockwise") }
                                         .accessibilityLabel(Text("Reset Clock")).buttonStyle(.bordered)
                                     Stepper("Min", value: Binding(get: { ble.timerMin }, set: { newValue in ble.timerMin = newValue; lastSavedMinutes = newValue; ble.syncDataToDisplay() }), in: 1...90).labelsHidden()
@@ -318,6 +318,15 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showTutorial) { TutorialView() }
+        .onAppear {
+            #if DEBUG
+            // screenshots: `-landscape` turns the app sideways in the simulator
+            if ProcessInfo.processInfo.arguments.contains("-landscape"),
+               let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight))
+            }
+            #endif
+        }
         .onChange(of: scenePhase) { _, phase in if phase == .active { ble.refreshClockAfterBackground() } }
         .environment(\.locale, ble.language.locale)       // SwiftUI texts follow the language picked in the app
     }

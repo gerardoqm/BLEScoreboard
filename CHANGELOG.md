@@ -2,6 +2,10 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.3.0 (17)
+- The countdown and the Start button no longer wrap on narrower phones (iPhone 17 Pro and smaller).
+- New tutorial screenshots in English and Spanish (match screen, landscape, firmware page, watch with the countdown), made with `tools/take-screenshots.sh`; the tutorials describe the current screens and add the firmware, landscape and language sections.
+
 ## 1.3.0 (16)
 - A goal alert on the panel is no longer cut at 16 characters: boards with firmware 1.2.3 take up to 32. Older boards still get the shortened text.
 - The period start alert on the panel uses your unit name ("Cuarto 2", "Quarter 2") instead of always saying "Period".
