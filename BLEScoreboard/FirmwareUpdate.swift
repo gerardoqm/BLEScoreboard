@@ -108,7 +108,7 @@ final class FirmwareUpdater: ObservableObject {
         self.peripheral = peripheral
         self.characteristic = characteristic
         if peripheral == nil && isRunning && state != .finishing {
-            fail(String(localized: "The Bluetooth connection was lost during the update."))
+            fail(tr("The Bluetooth connection was lost during the update."))
         }
     }
     
@@ -130,7 +130,7 @@ final class FirmwareUpdater: ObservableObject {
     func cancel() {
         guard isRunning else { return }
         send(Data([opAbort]))
-        fail(String(localized: "Update cancelled."), withDetail: false)
+        fail(tr("Update cancelled."), withDetail: false)
     }
     
     func resetMessage() { if case .failed = state { state = .idle } else if state == .done { state = .idle } }
@@ -205,7 +205,7 @@ final class FirmwareUpdater: ObservableObject {
         watchdog = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
             guard let self, self.isRunning, Date().timeIntervalSince(self.lastProgress) > 20 else { return }
             self.send(Data([self.opAbort]))
-            self.fail(String(localized: "The update stalled. Move the phone closer to the board and try again."))
+            self.fail(tr("The update stalled. Move the phone closer to the board and try again."))
         }
     }
     
@@ -224,13 +224,13 @@ final class FirmwareUpdater: ObservableObject {
     private func fail(status: UInt8) {
         let message: String
         switch status {
-        case 3: message = String(localized: "The board did not accept this app's update key. Rebuild the app with tools/bundle-firmware.sh after flashing the board.")
-        case 7: message = String(localized: "The board is locked for 30 seconds after failed tries. Wait and try again.")
-        case 4: message = String(localized: "The firmware does not fit on the board.")
-        case 5: message = String(localized: "The board could not write the firmware.")
-        case 6: message = String(localized: "The firmware did not pass the board's check, so nothing was changed.")
-        case 2: message = String(localized: "The board was busy. Try again.")
-        default: message = String(localized: "Update failed (code \(Int(status))).")
+        case 3: message = tr("The board did not accept this app's update key. Rebuild the app with tools/bundle-firmware.sh after flashing the board.")
+        case 7: message = tr("The board is locked for 30 seconds after failed tries. Wait and try again.")
+        case 4: message = tr("The firmware does not fit on the board.")
+        case 5: message = tr("The board could not write the firmware.")
+        case 6: message = tr("The firmware did not pass the board's check, so nothing was changed.")
+        case 2: message = tr("The board was busy. Try again.")
+        default: message = tr("Update failed (code \(Int(status))).")
         }
         fail(message)
     }
@@ -248,11 +248,11 @@ struct FirmwareUpdateView: View {
     
     private var boardVersion: String {
         if let version = ble.boardFirmwareVersion { return version.description }
-        return ble.telemetryReceived ? String(localized: "Older, no version number") : String(localized: "Unknown")
+        return ble.telemetryReceived ? tr("Older, no version number") : tr("Unknown")
     }
     
     private var appFirmwareVersion: String {
-        updater.bundled.map { $0.version.description } ?? String(localized: "No firmware in this app")
+        updater.bundled.map { $0.version.description } ?? tr("No firmware in this app")
     }
     
     private func versionRow(_ title: LocalizedStringKey, _ value: String) -> some View {

@@ -52,9 +52,9 @@ struct ContentView: View {
     func getOrdinalLabel(p: Int, total: Int) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .ordinal
-        formatter.locale = Locale.current
+        formatter.locale = AppLanguage.current.locale
         let ordinalStr = formatter.string(from: NSNumber(value: p)) ?? "\(p)"
-        return String(localized: "\(ordinalStr) of \(total)")
+        return tr("\(ordinalStr) of \(total)")
     }
     
     var body: some View {
@@ -66,7 +66,7 @@ struct ContentView: View {
                         Text("Select your board to avoid interference.").font(.caption).foregroundColor(.secondary)
                         List {
                             ForEach(ble.discoveredDevices, id: \.identifier) { device in
-                                boardRow(name: device.name ?? String(localized: "Unnamed Scoreboard")) { ble.connect(to: device) }
+                                boardRow(name: device.name ?? tr("Unnamed Scoreboard")) { ble.connect(to: device) }
                             }
                             ForEach(ble.demoBoardNames, id: \.self) { name in
                                 boardRow(name: name) { }
@@ -105,6 +105,7 @@ struct ContentView: View {
                     }
                     .navigationTitle("Find Scoreboards")
                     .toolbar {
+                        ToolbarItem(placement: .topBarLeading) { LanguageMenu(ble: ble) }
                         ToolbarItem(placement: .topBarTrailing) {
                             Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
                                 .accessibilityLabel(Text("Tutorial"))
@@ -121,6 +122,7 @@ struct ContentView: View {
                                     Text("Match Configuration").font(.caption).bold().foregroundColor(.secondary)
                                     Spacer()
                                     Text(LocalizedStringKey(ble.isSimulating ? "Simulator" : "Linked")).foregroundColor(ble.isSimulating ? .purple : .green).font(.caption2).bold()
+                                    LanguageMenu(ble: ble)
                                     Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
                                         .accessibilityLabel(Text("Tutorial"))
                                     Button(LocalizedStringKey(ble.isSimulating ? "Exit simulator" : "Disconnect")) { ble.disconnect() }.font(.caption2).bold().foregroundColor(.red).buttonStyle(.bordered).controlSize(.mini).tint(.red)
@@ -219,12 +221,12 @@ struct ContentView: View {
                                     .font(.subheadline).bold().foregroundColor(.purple)
                                 HStack(spacing: 12) {
                                     VStack(spacing: 2) {
-                                        Text(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName.uppercased()).font(.subheadline).bold().foregroundColor(.blue).lineLimit(1)
+                                        Text(ble.homeName.isEmpty ? tr("HOME") : ble.homeName.uppercased()).font(.subheadline).bold().foregroundColor(.blue).lineLimit(1)
                                         Text("\(ble.homeScore)").font(.system(size: 48, weight: .black, design: .monospaced))
                                         Stepper("", value: $ble.homeScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
                                     }.frame(maxWidth: .infinity)
                                     VStack(spacing: 2) {
-                                        Text(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName.uppercased()).font(.subheadline).bold().foregroundColor(.red).lineLimit(1)
+                                        Text(ble.awayName.isEmpty ? tr("AWAY") : ble.awayName.uppercased()).font(.subheadline).bold().foregroundColor(.red).lineLimit(1)
                                         Text("\(ble.awayScore)").font(.system(size: 48, weight: .black, design: .monospaced))
                                         Stepper("", value: $ble.awayScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
                                     }.frame(maxWidth: .infinity)
@@ -317,5 +319,24 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showTutorial) { TutorialView() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { ble.refreshClockAfterBackground() } }
+        .environment(\.locale, ble.language.locale)       // SwiftUI texts follow the language picked in the app
+    }
+}
+
+/// Language switch: follow the phone, or force English or Spanish. The watch follows too.
+struct LanguageMenu: View {
+    @ObservedObject var ble: AdvancedBLEManager
+    
+    var body: some View {
+        Menu {
+            Picker("Language", selection: $ble.language) {
+                Text("Automatic").tag(AppLanguage.system)
+                Text(verbatim: "English").tag(AppLanguage.english)
+                Text(verbatim: "Español").tag(AppLanguage.spanish)
+            }
+        } label: {
+            Image(systemName: "globe")
+        }
+        .accessibilityLabel(Text("Language"))
     }
 }

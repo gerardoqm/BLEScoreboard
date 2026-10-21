@@ -78,7 +78,7 @@ struct TutorialView: View {
     ]
 
     /// "es" when the phone is set to Spanish, otherwise English.
-    private var languageSuffix: String { Locale.current.language.languageCode?.identifier == "es" ? "es" : "en" }
+    private var languageSuffix: String { AppLanguage.current.code }
 
     var body: some View {
         NavigationStack {

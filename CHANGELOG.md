@@ -2,6 +2,14 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.3.0 (16)
+- A goal alert on the panel is no longer cut at 16 characters: boards with firmware 1.2.3 take up to 32. Older boards still get the shortened text.
+- The period start alert on the panel uses your unit name ("Cuarto 2", "Quarter 2") instead of always saying "Period".
+- The bundled firmware is 1.2.3.
+
+## 1.3.0 (15)
+- Language switch: the globe button (on the scanner screen and in the match configuration card) forces English or Spanish, or follows the phone ("Automatic"). The choice is saved, applies at once to every text in the app, the board's alerts and the tutorial, and is sent to the Apple Watch, which switches too. Names left at the default ("HOME", "AWAY", "Period") change language with it.
+
 ## 1.2.0 (14)
 - Landscape scoreboard: turn the phone sideways on the match screen (linked board or simulator) and the simulated LED panel fills the screen, with score, period and clock controls in one row below. The screen stays on, so the phone can serve as the scoreboard when the real panel does not work.
 

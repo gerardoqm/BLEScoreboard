@@ -18,11 +18,12 @@ final class WatchModel: NSObject, ObservableObject, WCSessionDelegate {
     @Published var period = 1
     @Published var totalPeriods = 4
     @Published var isRunning = false
+    @Published var language = AppLanguage.current
     @Published var homeName = ""
     @Published var awayName = ""
     @Published var minutes = 10
     @Published var seconds = 0
-    @Published var periodLabelText = String(localized: "Period")
+    @Published var periodLabelText = tr("Period")
     @Published var alertText = ""
     @Published var showAlert = false
 
@@ -99,6 +100,10 @@ final class WatchModel: NSObject, ObservableObject, WCSessionDelegate {
         if let p = message["p"] as? Int { period = min(max(p, 1), totalPeriods) }
         if let r = message["r"] as? Bool { isRunning = r }
         if let l = message["l"] as? String { periodLabelText = l }
+        if let code = message["lang"] as? String {                      // language picked in the iPhone app
+            let picked = AppLanguage(rawValue: code) ?? .system
+            if picked != language { language = picked; UserDefaults.standard.set(picked.rawValue, forKey: AppLanguage.storeKey) }
+        }
         if let n = message["hn"] as? String { homeName = n.trimmingCharacters(in: .whitespaces) }
         if let n = message["an"] as? String { awayName = n.trimmingCharacters(in: .whitespaces) }
         if let m = message["m"] as? Int, let sec = message["s"] as? Int {
@@ -177,8 +182,8 @@ struct ContentView: View {
             ScrollView {
                 VStack(spacing: 6) {
                     HStack(spacing: 6) {
-                        teamBlock(name: model.homeName.isEmpty ? String(localized: "HOME") : model.homeName.uppercased(), color: .blue, score: model.homeScore) { model.changeHome(by: $0) }
-                        teamBlock(name: model.awayName.isEmpty ? String(localized: "AWAY") : model.awayName.uppercased(), color: .red, score: model.awayScore) { model.changeAway(by: $0) }
+                        teamBlock(name: model.homeName.isEmpty ? tr("HOME") : model.homeName.uppercased(), color: .blue, score: model.homeScore) { model.changeHome(by: $0) }
+                        teamBlock(name: model.awayName.isEmpty ? tr("AWAY") : model.awayName.uppercased(), color: .red, score: model.awayScore) { model.changeAway(by: $0) }
                     }
                     
                     HStack(spacing: 6) {
@@ -252,5 +257,6 @@ struct ContentView: View {
         }
         }
         .onChange(of: scenePhase) { _, phase in if phase == .active { model.requestSync() } }
+        .environment(\.locale, model.language.locale)
     }
 }

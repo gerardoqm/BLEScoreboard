@@ -25,9 +25,20 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var timerMin = 10
     @Published var timerSec = 0
     @Published var isTimerRunning = false
-    @Published var homeName = String(localized: "HOME")
-    @Published var awayName = String(localized: "AWAY")
-    @Published var periodLabelText = String(localized: "Period")
+    @Published var homeName = tr("HOME")
+    @Published var awayName = tr("AWAY")
+    @Published var periodLabelText = tr("Period")
+    /// The language picked in the app ("system" follows the phone). Names the user never changed follow the new language.
+    @Published var language: AppLanguage = AppLanguage.current {
+        didSet {
+            guard language != oldValue else { return }
+            UserDefaults.standard.set(language.rawValue, forKey: AppLanguage.storeKey)
+            if homeName == tr("HOME", in: oldValue) { homeName = tr("HOME") }
+            if awayName == tr("AWAY", in: oldValue) { awayName = tr("AWAY") }
+            if periodLabelText == tr("Period", in: oldValue) { periodLabelText = tr("Period") }
+            syncDataToDisplay()
+        }
+    }
     @Published var renameStatus = ""
     @Published var panelColors: [PanelElement: RGB] = PanelColorStore.load()
     /// Match screen without a physical board: the simulated panel is the only display.
@@ -212,8 +223,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             center.add(UNNotificationRequest(identifier: id, content: content,
                                              trigger: UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(seconds), repeats: false)))
         }
-        if let untilHalf = secondsUntilHalfTime(remaining: remaining) { schedule(halfTimeNotificationID, String(localized: "⏸ Half Time!"), after: untilHalf) }
-        if period >= totalPeriods { schedule(matchEndNotificationID, String(localized: "🏁 Full Match Complete!"), after: remaining) }   // only the last period ends the match
+        if let untilHalf = secondsUntilHalfTime(remaining: remaining) { schedule(halfTimeNotificationID, tr("⏸ Half Time!"), after: untilHalf) }
+        if period >= totalPeriods { schedule(matchEndNotificationID, tr("🏁 Full Match Complete!"), after: remaining) }   // only the last period ends the match
     }
     
     private func cancelMatchEndNotification() {
@@ -318,15 +329,21 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     // MARK: - Panel alerts
     /// Text for the panel's start alerts: ASCII only, capitals, at most 16 characters.
+    /// Boards with protocol 8 take 32 characters of alert text, older ones 16 (and refuse longer text). No board: the preview shows all 32.
+    private var alertTextLimit: Int { (!isConnected || (boardProtocolVersion ?? 0) >= 8) ? 32 : 16 }
+    
     func panelAlertText(_ kind: PanelAlertKind) -> String {
         let text: String
         switch kind {
-        case .gameStart: text = String(localized: "GAME START")
-        case .periodStart(let number): text = String(localized: "PERIOD \(number)")
-        case .halfTime: text = String(localized: "HALF TIME")
+        case .gameStart: text = tr("GAME START")
+        case .periodStart(let number):
+            // the unit name the user chose ("Quarter", "Cuarto"...); the plain word only if it has nothing the panel can show
+            let label = panelSafe(periodLabelText).trimmingCharacters(in: .whitespaces)
+            text = label.isEmpty ? tr("PERIOD \(number)") : "\(label) \(number)"
+        case .halfTime: text = tr("HALF TIME")
         case .goal(let label): text = label
         }
-        return String(panelSafe(text).uppercased().split(separator: " ", omittingEmptySubsequences: true).joined(separator: " ").prefix(16))
+        return String(panelSafe(text).uppercased().split(separator: " ", omittingEmptySubsequences: true).joined(separator: " ").prefix(alertTextLimit))
     }
     
     /// Tells the board to scroll the alert across the panel. Does nothing when no board is linked.
@@ -454,14 +471,14 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         let trimmed = newName.trimmingCharacters(in: .whitespaces)
         let isPrintableASCII = trimmed.utf8.allSatisfy { $0 >= 0x20 && $0 <= 0x7E }
         guard let peripheral = connectedPeripheral, let config = configCharacteristic else {
-            renameStatus = String(localized: "Board not ready for renaming (firmware update needed?)")
+            renameStatus = tr("Board not ready for renaming (firmware update needed?)")
             return
         }
         guard !trimmed.isEmpty, trimmed.utf8.count <= Self.deviceNameMaxLength, isPrintableASCII else {
-            renameStatus = String(localized: "Name must be 1-\(Self.deviceNameMaxLength) plain characters")
+            renameStatus = tr("Name must be 1-\(Self.deviceNameMaxLength) plain characters")
             return
         }
-        renameStatus = String(localized: "Renaming...")
+        renameStatus = tr("Renaming...")
         peripheral.writeValue(Data([cmdSetName]) + Data(trimmed.utf8), for: config, type: .withResponse)
     }
     
@@ -495,9 +512,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             case (self.cmdColors, _), (self.cmdAlert, _), (self.cmdVisibility, _), (self.cmdAlertIcon, _), (self.cmdNameIcon, _):
                 break   // colors need no feedback; boards without protocol 3 are reported by the version check
             case (self.cmdApply, 0):
-                self.renameStatus = String(localized: "Renamed. The board is restarting...")
+                self.renameStatus = tr("Renamed. The board is restarting...")
             default:
-                self.renameStatus = String(localized: "Board rejected the rename (code \(Int(status)))")
+                self.renameStatus = tr("Board rejected the rename (code \(Int(status)))")
             }
         }
     }
@@ -603,9 +620,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     /// or dropped when the board is too old to draw pictures).
     private func goalLabels(byHome: Bool) -> (phone: String, panel: String) {
         let rawName = (byHome ? homeName : awayName).trimmingCharacters(in: .whitespaces)
-        let name = rawName.isEmpty ? (byHome ? String(localized: "HOME") : String(localized: "AWAY")) : rawName
+        let name = rawName.isEmpty ? (byHome ? tr("HOME") : tr("AWAY")) : rawName
         let panelName = (!isConnected || boardSupportsNameIcons) ? panelText(name, firstSlot: byHome ? 0 : 2) : name
-        return (String(localized: "Goal by \(name)"), String(localized: "Goal by \(panelName)"))
+        return (tr("Goal by \(name)"), tr("Goal by \(panelName)"))
     }
     
     /// Plays a goal alert for the home team on the panel and the preview without changing the score.
@@ -635,19 +652,19 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     private func triggerHapticAlert(type: MatchEventType) {
         let formatter = NumberFormatter()
         formatter.numberStyle = .ordinal
-        formatter.locale = Locale.current
+        formatter.locale = AppLanguage.current.locale
         let ordinalString = formatter.string(from: NSNumber(value: period)) ?? "\(period)"
         
         // Configure Custom Display Text Labels
         switch type {
         case .startEvent:
-            alertBannerTitle = String(localized: "▶️ Game Started!")
+            alertBannerTitle = tr("▶️ Game Started!")
         case .periodAdvance:
-            alertBannerTitle = String(localized: "⏰ \(ordinalString) \(periodLabelText) Starting!")
+            alertBannerTitle = tr("⏰ \(ordinalString) \(periodLabelText) Starting!")
         case .matchComplete:
-            alertBannerTitle = String(localized: "🏁 Full Match Complete!")
+            alertBannerTitle = tr("🏁 Full Match Complete!")
         case .halfTime:
-            alertBannerTitle = String(localized: "⏸ Half Time!")
+            alertBannerTitle = tr("⏸ Half Time!")
         }
         
         // Present the visual popup layout banner overlay
@@ -681,9 +698,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     func syncWatchData() {
         guard WCSession.default.activationState == .activated else { return }
         let info: [String: Any] = ["h": homeScore, "a": awayScore, "p": period, "r": isTimerRunning, "t": totalPeriods, "l": periodLabelText,
-                                   "m": timerMin, "s": timerSec, "hn": homeName, "an": awayName, "ts": Date().timeIntervalSince1970]
+                                   "m": timerMin, "s": timerSec, "hn": homeName, "an": awayName, "lang": language.rawValue, "ts": Date().timeIntervalSince1970]
         if WCSession.default.isReachable { WCSession.default.sendMessage(info, replyHandler: nil, errorHandler: nil) }
-        let signature = "\(homeScore)|\(awayScore)|\(period)|\(isTimerRunning)|\(totalPeriods)|\(periodLabelText)|\(homeName)|\(awayName)" + (isTimerRunning ? "" : "|\(timerMin):\(timerSec)")
+        let signature = "\(homeScore)|\(awayScore)|\(period)|\(isTimerRunning)|\(totalPeriods)|\(periodLabelText)|\(homeName)|\(awayName)|\(language.rawValue)" + (isTimerRunning ? "" : "|\(timerMin):\(timerSec)")
         if signature != lastWatchSignature || Date().timeIntervalSince(lastWatchContext) >= 5 {
             lastWatchSignature = signature; lastWatchContext = Date()
             try? WCSession.default.updateApplicationContext(info)
@@ -730,7 +747,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             homeScore = 12; awayScore = 9
             period = 2; totalPeriods = 4
             timerMin = 7; timerSec = 45
-            periodLabelText = String(localized: "Period")
+            periodLabelText = tr("Period")
         case "list":
             isScanning = true
             demoBoardNames = ["Scoreboard_Beta", "Court 2"]
@@ -740,7 +757,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             homeScore = 12; awayScore = 9
             period = 2; totalPeriods = 4
             timerMin = 7; timerSec = 45
-            periodLabelText = String(localized: "Period")
+            periodLabelText = tr("Period")
             batteryPercent = 82; boardProtocolVersion = Self.expectedProtocolVersion; telemetryReceived = true
             demoScrollToBottom = args[i + 1] == "connected-bottom"
             if let f = args.firstIndex(of: "-fwDemo"), f + 1 < args.count {
@@ -748,7 +765,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 case "available": boardProtocolVersion = 5; boardFirmwareVersion = FirmwareVersion(1, 0, 0); firmwareUpdater.demoSupported = true
                 case "sending": boardFirmwareVersion = FirmwareVersion(1, 0, 0); firmwareUpdater.setDemo(.sending(0.42))
                 case "done": firmwareUpdater.setDemo(.done)
-                case "failed": firmwareUpdater.setDemo(.failed(String(localized: "The board is locked for 30 seconds after failed tries. Wait and try again.")))
+                case "failed": firmwareUpdater.setDemo(.failed(tr("The board is locked for 30 seconds after failed tries. Wait and try again.")))
                 default: break
                 }
             }
