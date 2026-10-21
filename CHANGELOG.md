@@ -2,6 +2,9 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.2.0 (14)
+- Landscape scoreboard: turn the phone sideways on the match screen (linked board or simulator) and the simulated LED panel fills the screen, with score, period and clock controls in one row below. The screen stays on, so the phone can serve as the scoreboard when the real panel does not work.
+
 ## 1.1.0 (13)
 Version raised from 1.0.0 to 1.1.0: builds 2 to 12 added features (watch countdown, goal and half-time alerts, goal icon, emoji in names, compact layout), which is a minor version. From now on the version changes with each release and the build number with each build.
 

@@ -33,6 +33,7 @@ struct ContentView: View {
     @StateObject var ble = AdvancedBLEManager()
     @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @State private var newBoardName = ""
     @State private var showFirmware = ProcessInfo.processInfo.arguments.contains("-showFirmware")  // also used for screenshots
     @State private var showColors = ProcessInfo.processInfo.arguments.contains("-showColors")  // also used for screenshots
@@ -109,6 +110,8 @@ struct ContentView: View {
                                 .accessibilityLabel(Text("Tutorial"))
                         }
                     }
+                } else if verticalSizeClass == .compact && !showColors && !showFirmware {
+                    LandscapeScoreboardView(ble: ble)       // phone turned sideways: the whole screen is the scoreboard
                 } else {
                     ScrollViewReader { proxy in
                     ScrollView {
