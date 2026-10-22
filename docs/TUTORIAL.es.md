@@ -76,6 +76,16 @@ Gira el teléfono en la pantalla del partido y el panel simulado ocupa toda la p
 
 El botón del globo (arriba a la izquierda en Buscar marcadores, y en la tarjeta superior de la pantalla del partido) fuerza inglés o español, o sigue el idioma del teléfono. El cambio se aplica al instante en toda la app, las alertas del panel y el Apple Watch.
 
+## 12. Alertas y sonido
+
+Abre **Alertas y sonido** en la tarjeta superior. Para cada evento (gol, tiempo restante, inicio del partido, inicio de periodo, fin de periodo, medio tiempo, fin del partido) elige por separado el **Audio**, el **Aviso** en la app y el **Panel**, y toca el botón de reproducir para probarlo. El teléfono dice los goles ("Gol de Blancos") y el tiempo restante ("quedan 5 minutos"), y suena un silbato de árbitro en los periodos y una bocina al inicio y al final del partido, en el idioma de la app. Elige los minutos a anunciar (de 1 a 15), escoge una voz (una voz mejorada o premium de Ajustes > Accesibilidad > Contenido hablado suena mucho más natural) y envía todo a un altavoz Bluetooth: vincúlalo en los Ajustes de iOS y elígelo con el botón del altavoz.
+
+<img src="images/11-alerts-es.png" width="280" alt="La página de alertas y sonido">
+
+## 13. Actividad en vivo
+
+Cuando arranca el reloj, el partido se queda en la pantalla de bloqueo y en la Dynamic Island (marcador, periodo y cuenta regresiva), y en tu Apple Watch, para que puedas cambiar de app o contestar una llamada sin perder el hilo. Termina cuando te desconectas, o 15 minutos después del silbatazo final. Se desactiva con el interruptor **Actividad en vivo** de la página de alertas y sonido.
+
 ## Solución de problemas
 
 | Problema | Qué probar |

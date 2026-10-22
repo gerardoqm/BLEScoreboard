@@ -49,6 +49,7 @@ struct ContentView: View {
     @State private var newBoardName = ""
     @State private var showFirmware = ProcessInfo.processInfo.arguments.contains("-showFirmware")  // also used for screenshots
     @State private var showColors = ProcessInfo.processInfo.arguments.contains("-showColors")  // also used for screenshots
+    @State private var showAlertSettings = ProcessInfo.processInfo.arguments.contains("-showAlerts")  // also used for screenshots
     @State private var showTutorial = ProcessInfo.processInfo.arguments.contains("-showTutorial")  // also used for screenshots
     
     private var hasBoards: Bool { !ble.discoveredDevices.isEmpty || !ble.demoBoardNames.isEmpty }
@@ -133,7 +134,7 @@ struct ContentView: View {
                                 .accessibilityLabel(Text("Tutorial"))
                         }
                     }
-                } else if verticalSizeClass == .compact && !showColors && !showFirmware {
+                } else if verticalSizeClass == .compact && !showColors && !showFirmware && !showAlertSettings {
                     LandscapeScoreboardView(ble: ble)       // phone turned sideways: the whole screen is the scoreboard
                 } else {
                     ScrollViewReader { proxy in
@@ -215,6 +216,16 @@ struct ContentView: View {
                                     Stepper("LED Panel Brightness", value: $ble.brightness, in: 10...120, step: 5).labelsHidden()
                                 }
                                 .onChange(of: ble.brightness) { ble.syncDataToDisplay() }
+                                Button { showAlertSettings = true } label: {
+                                    HStack {
+                                        Image(systemName: "speaker.wave.2").foregroundColor(.teal)
+                                        Text("Alerts and Sound").font(.subheadline).bold()
+                                        Spacer()
+                                        Image(systemName: "chevron.right").font(.footnote).foregroundColor(.secondary)
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
                                 Divider()
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -295,6 +306,7 @@ struct ContentView: View {
                     }
                     .onChange(of: ble.isConnected) { newBoardName = "" }
                     .navigationDestination(isPresented: $showColors) { PanelColorsView(ble: ble) }
+                    .navigationDestination(isPresented: $showAlertSettings) { AlertSettingsView(ble: ble, alerts: ble.alerts) }
                     .navigationDestination(isPresented: $showFirmware) { FirmwareUpdateView(ble: ble, updater: ble.firmwareUpdater) }
                     }
                 }

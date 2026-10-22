@@ -76,6 +76,16 @@ Turn the phone sideways on the match screen and the simulated panel fills the sc
 
 The globe button (top left of the Find Scoreboards screen, and in the top card of the match screen) forces English or Spanish, or follows the phone. The change applies at once to the whole app, the panel alerts and the Apple Watch.
 
+## 12. Alerts and sound
+
+Open **Alerts and Sound** in the top card. For each event (goal, time left, match start, period start, period end, half time, match end) choose **Audio**, the app **Banner** and the **Panel** separately, and tap the play button to try it. The phone speaks goals ("Goal by Whites") and the time left ("5 minutes left"), and plays referee whistles for periods and an air horn for the start and end of the match, in the app's language. Choose the minutes to announce (1 to 15), pick a voice (an Enhanced or Premium voice from Settings > Accessibility > Spoken Content sounds much more natural), and send everything to a Bluetooth speaker: pair it in iOS Settings, then choose it with the speaker button.
+
+<img src="images/11-alerts-en.png" width="280" alt="The Alerts and Sound page">
+
+## 13. Live Activity
+
+Once the clock starts, the match stays on the lock screen and in the Dynamic Island (scores, period and countdown), and on your Apple Watch, so you can switch apps or take a call without losing track. It ends when you disconnect, or 15 minutes after the final whistle. Turn it off with the **Live Activity** switch on the Alerts and Sound page.
+
 ## Troubleshooting
 
 | Problem | What to try |

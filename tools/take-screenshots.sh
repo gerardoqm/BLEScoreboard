@@ -38,8 +38,10 @@ shot() {   # device, bundle id, language, name, width, launch arguments...
   loc=(-AppleLanguages "($lang)" -AppleLocale "$([ "$lang" = es ] && echo es_MX || echo en_US)")
   xcrun simctl launch --terminate-running-process "$dev" "$bid" "${loc[@]}" "$@" >/dev/null
   sleep 8
-  xcrun simctl io "$dev" screenshot "$IMAGES/$name-$lang.png" >/dev/null 2>&1
-  sips --resampleWidth "$width" "$IMAGES/$name-$lang.png" >/dev/null
+  # simctl cannot write into ~/Documents, so the picture is made in the temp folder and copied
+  xcrun simctl io "$dev" screenshot "$WORK/shot.png" >/dev/null 2>&1
+  sips --resampleWidth "$width" "$WORK/shot.png" >/dev/null
+  cp "$WORK/shot.png" "$IMAGES/$name-$lang.png"
   echo "$name-$lang"
 }
 
@@ -55,6 +57,7 @@ for lang in en es; do
   shot "$PHONE" $B $lang 8-simulator 640 -demo simulate -scrollPreview
   shot "$PHONE" $B $lang 9-firmware 640 -demo connected -showFirmware -fwDemo available
   shot "$PHONE" $B $lang 10-landscape 1000 -demo simulate -landscape
+  shot "$PHONE" $B $lang 11-alerts 640 -demo connected -showAlerts
   # the first launch of the watch app is slow, so it gets one throw-away launch
   xcrun simctl launch --terminate-running-process "$WATCH" com.gerardoqm.BLEScoreboard.watchkitapp -demo >/dev/null; sleep 12
   shot "$WATCH" com.gerardoqm.BLEScoreboard.watchkitapp $lang 7-watch 416 -demo

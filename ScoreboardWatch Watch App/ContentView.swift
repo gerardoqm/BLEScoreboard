@@ -122,6 +122,7 @@ final class WatchModel: NSObject, ObservableObject, WCSessionDelegate {
             case 3: WKInterfaceDevice.current().play(.success)
             case 4: WKInterfaceDevice.current().play(.notification)   // half time
             case 5: WKInterfaceDevice.current().play(.success)        // goal
+            case 6: WKInterfaceDevice.current().play(.click)          // time left
             default: break
             }
         }

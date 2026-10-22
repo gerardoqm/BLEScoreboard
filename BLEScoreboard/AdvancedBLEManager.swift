@@ -52,6 +52,10 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var boardFirmwareVersion: FirmwareVersion?
     /// Sends the bundled firmware to the board over Bluetooth.
     let firmwareUpdater = FirmwareUpdater()
+    /// How each event is announced (audio, banner, panel); edited on the Alerts and Sound page.
+    let alerts = AlertSettings()
+    /// The match on the lock screen, in the Dynamic Island and on the Apple Watch.
+    private let liveActivity = LiveActivityController()
     /// Names as boards advertise them: fresher than CBPeripheral.name, which iOS caches (it can show the old name after a rename).
     private var advertisedNames: [UUID: String] = [:]
     private var demoBoardName: String?
@@ -134,11 +138,15 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     
     /// The clock is based on the moment it will reach zero, so it stays right even if iOS suspends the app (screen locked, another app in front).
     private var clockEndDate: Date?
+    /// The period whose clock just ran out (the period number has already moved on when the alert plays).
+    private var lastEndedPeriod = 1
     
     func toggleClock() {
         isTimerRunning.toggle()
         if isTimerRunning {
-            triggerHapticAlert(type: .startEvent)
+            let saved = UserDefaults.standard.integer(forKey: "lastSavedMinutes")
+            let atFullLength = timerMin == (saved > 0 ? saved : 10) && timerSec == 0     // a new period or match, not a resume after a pause
+            triggerHapticAlert(type: .startEvent, audio: atFullLength)
             announceStartOnPanel()
             clockEndDate = Date().addingTimeInterval(Double(timerMin * 60 + timerSec))
             scheduleMatchEndNotification()
@@ -186,6 +194,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             if halfTimeInsidePeriod, previous > periodLengthSeconds / 2, remaining <= periodLengthSeconds / 2 {
                 triggerHapticAlert(type: .halfTime)
             }
+            // time left: announce each chosen time once, as the clock passes it (the shortest one if a long gap skipped several)
+            let crossed = alerts.timeLeftMinutes.filter { $0 * 60 < periodLengthSeconds && previous > $0 * 60 && remaining <= $0 * 60 }
+            if let minutes = crossed.min() { triggerHapticAlert(type: .timeLeft(minutes)) }
         } else {
             let wasHalfTime = halfTimeEndsPeriod
             stopClock()
@@ -194,12 +205,16 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             timerSec = 0
             
             if period < totalPeriods {
+                lastEndedPeriod = period
                 period += 1
                 let savedMinutes = UserDefaults.standard.integer(forKey: "lastSavedMinutes")
                 timerMin = savedMinutes > 0 ? savedMinutes : 10
                 triggerHapticAlert(type: wasHalfTime ? .halfTime : .periodAdvance)
             } else {
                 triggerHapticAlert(type: .matchComplete)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 900) { [weak self] in    // 15 minutes later the final score leaves the lock screen
+                    if let self, !self.isTimerRunning { self.liveActivity.end() }
+                }
             }
         }
         syncDataToDisplay()
@@ -261,8 +276,24 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         return String(String.UnicodeScalarView(folded.unicodeScalars.filter { $0.isASCII && $0 != "|" }))
     }
     
+    /// Shows the match as a Live Activity while it is on: the clock runs, or the match screen is open and the clock has been started once.
+    /// The countdown runs inside the widget; an update is sent only when something it shows changes.
+    func updateLiveActivity() {
+        guard !isDemo, alerts.liveActivityEnabled, isConnected || isSimulating else { liveActivity.end(); return }
+        let state = MatchActivityAttributes.ContentState(
+            homeName: homeName.isEmpty ? tr("HOME") : homeName,
+            awayName: awayName.isEmpty ? tr("AWAY") : awayName,
+            homeScore: homeScore, awayScore: awayScore,
+            periodText: "\(ordinal(period)) \(periodLabelText.lowercased())",
+            secondsLeft: isTimerRunning ? 0 : timerMin * 60 + timerSec,       // only used while paused; a running clock counts by itself
+            clockEnd: isTimerRunning ? clockEndDate : nil,
+            isRunning: isTimerRunning)
+        liveActivity.show(state, start: isTimerRunning)
+    }
+    
     func syncDataToDisplay() {
         syncWatchData()  // the watch follows the phone even when no board is linked
+        updateLiveActivity()
         guard !firmwareUpdater.isRunning else { return }   // keep the link free for the firmware transfer
         guard let peripheral = connectedPeripheral, let characteristic = targetCharacteristic else { return }
         
@@ -353,6 +384,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         case .periodStart(let number): text = periodAnnouncement(number)
         case .halfTime: text = tr("HALF TIME")
         case .matchEnd: text = tr("FULL TIME")
+        case .timeLeft(let minutes): text = minutes == 1 ? tr("1 MIN LEFT") : tr("\(minutes) MIN LEFT")
+        case .periodEnd(let number): text = tr("END \(periodAnnouncement(number))")
         case .goal(let label): text = label
         }
         return String(panelSafe(text).uppercased().split(separator: " ", omittingEmptySubsequences: true).joined(separator: " ").prefix(alertTextLimit))
@@ -363,6 +396,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         var element = PanelElement.alertGame
         if case .periodStart = kind { element = .alertPeriod }
         if case .halfTime = kind { element = .alertPeriod }
+        if case .timeLeft = kind { element = .alertPeriod }
+        if case .periodEnd = kind { element = .alertPeriod }
         guard panelVisibility[element] ?? true else { return }   // this alert is switched off
         var playback = AlertPlayback(text: panelAlertText(kind), color: panelColors[element] ?? element.defaultColor, start: Date())
         var isGoal = false
@@ -372,6 +407,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         var type: UInt8 = 1
         if case .periodStart = kind { type = 2 }
         if case .halfTime = kind { type = 2 }
+        if case .timeLeft = kind { type = 2 }
+        if case .periodEnd = kind { type = 2 }
         if isGoal, !boardLacksIconSupport, boardProtocolVersion != nil {
             sendGoalIconIfNeeded(peripheral: peripheral, config: config)
             type = 3
@@ -400,6 +437,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     private func announceStartOnPanel() {
         let saved = UserDefaults.standard.integer(forKey: "lastSavedMinutes")
         guard timerMin == (saved > 0 ? saved : 10), timerSec == 0 else { return }
+        guard alerts.channels(for: period == 1 ? .matchStart : .periodStart).panel else { return }
         sendPanelAlert(period == 1 ? .gameStart : .periodStart(period))
     }
     
@@ -547,6 +585,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     func startSimulation() { isSimulating = true }
     
     func disconnect() {
+        liveActivity.end()
         if isSimulating { isSimulating = false; return }   // leaving the simulated board
         wasIntentionalDisconnect = true // Lock tracking flag
         if let peripheral = connectedPeripheral {
@@ -633,11 +672,13 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     /// on the phone, on the panel (up to 16 characters) and on the watch.
     /// "Goal by <team>" for the phone (with the team's emoji as typed) and for the panel (each emoji replaced by its picture slot,
     /// or dropped when the board is too old to draw pictures).
-    private func goalLabels(byHome: Bool) -> (phone: String, panel: String) {
+    private func goalLabels(byHome: Bool) -> (phone: String, panel: String, spoken: String) {
         let rawName = (byHome ? homeName : awayName).trimmingCharacters(in: .whitespaces)
         let name = rawName.isEmpty ? (byHome ? tr("HOME") : tr("AWAY")) : rawName
         let panelName = (!isConnected || boardSupportsNameIcons) ? panelText(name, firstSlot: byHome ? 0 : 2) : name
-        return (tr("Goal by \(name)"), tr("Goal by \(panelName)"))
+        // spoken without emoji, which a voice would read out by their description
+        let spokenName = String(name.filter { !EmojiBitmap.isEmoji($0) }).trimmingCharacters(in: .whitespaces)
+        return (tr("Goal by \(name)"), tr("Goal by \(panelName)"), tr("Goal by \(spokenName.isEmpty ? name : spokenName)"))
     }
     
     /// Plays a goal alert for the home team on the panel and the preview without changing the score.
@@ -646,25 +687,69 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     private func goalScored(byHome: Bool) {
         guard !isDemo else { return }
         let labels = goalLabels(byHome: byHome)
-        goalText = labels.phone
-        goalByHome = byHome
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.55)) { showGoal = true }
-        goalHideWork?.cancel()
-        let work = DispatchWorkItem { [weak self] in withAnimation(.easeIn(duration: 0.3)) { self?.showGoal = false } }
-        goalHideWork = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.4, execute: work)
-        let generator = UINotificationFeedbackGenerator()
-        generator.prepare(); generator.notificationOccurred(.success)
-        sendPanelAlert(.goal(labels.panel))
-        if WCSession.default.activationState == .activated {
-            WCSession.default.sendMessage(["triggerAlert": 5, "alertText": (goalIcon.isEmpty ? "" : goalIcon + " ") + labels.phone], replyHandler: nil, errorHandler: nil)
+        let channels = alerts.channels(for: .goal)
+        if alerts.audioEnabled && channels.audio { AudioAnnouncer.shared.speak(labels.spoken) }
+        if channels.banner {
+            goalText = labels.phone
+            goalByHome = byHome
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.55)) { showGoal = true }
+            goalHideWork?.cancel()
+            let work = DispatchWorkItem { [weak self] in withAnimation(.easeIn(duration: 0.3)) { self?.showGoal = false } }
+            goalHideWork = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.4, execute: work)
+            let generator = UINotificationFeedbackGenerator()
+            generator.prepare(); generator.notificationOccurred(.success)
+            if WCSession.default.activationState == .activated {
+                WCSession.default.sendMessage(["triggerAlert": 5, "alertText": (goalIcon.isEmpty ? "" : goalIcon + " ") + labels.phone], replyHandler: nil, errorHandler: nil)
+            }
         }
+        if channels.panel { sendPanelAlert(.goal(labels.panel)) }
     }
     
     // MARK: - Visual & Haptic Alerts System
-    enum MatchEventType { case startEvent, periodAdvance, matchComplete, halfTime }
+    enum MatchEventType: Equatable { case startEvent, periodAdvance, matchComplete, halfTime, timeLeft(Int) }
     
-    private func triggerHapticAlert(type: MatchEventType) {
+    /// The row of the Alerts and Sound page an event belongs to.
+    private func alertEvent(for type: MatchEventType) -> AlertEvent {
+        switch type {
+        case .startEvent: return period == 1 ? .matchStart : .periodStart
+        case .periodAdvance: return .periodEnd
+        case .matchComplete: return .matchEnd
+        case .halfTime: return .halfTime
+        case .timeLeft: return .timeLeft
+        }
+    }
+    
+    /// "5 minutes left" / "quedan 5 minutos".
+    func timeLeftPhrase(_ minutes: Int) -> String { minutes == 1 ? tr("1 minute left") : tr("\(minutes) minutes left") }
+    
+    private func playAudio(for type: MatchEventType, event: AlertEvent) {
+        guard alerts.audioEnabled, alerts.channels(for: event).audio else { return }
+        let audio = AudioAnnouncer.shared
+        switch type {
+        case .startEvent: audio.play(event == .matchStart ? .horn : .whistle)
+        case .periodAdvance: audio.play(.doubleWhistle)
+        case .matchComplete: audio.play(.longHorn)
+        case .halfTime: audio.play(.doubleWhistle); audio.speak(tr("Half time"))
+        case .timeLeft(let minutes): audio.speak(timeLeftPhrase(minutes))
+        }
+    }
+    
+    /// Announces an event the way the Alerts and Sound page says: spoken or played, on the panel, on the app banner (with a vibration, also on the watch).
+    private func triggerHapticAlert(type: MatchEventType, audio: Bool = true, event override: AlertEvent? = nil) {
+        let event = override ?? alertEvent(for: type)
+        let channels = alerts.channels(for: event)
+        if audio { playAudio(for: type, event: event) }
+        if channels.panel {
+            switch type {
+            case .halfTime: sendPanelAlert(.halfTime)
+            case .matchComplete: sendPanelAlert(.matchEnd)          // the panel says it too, not only the app banner
+            case .timeLeft(let minutes): sendPanelAlert(.timeLeft(minutes))
+            case .periodAdvance: sendPanelAlert(.periodEnd(lastEndedPeriod))
+            default: break
+            }
+        }
+        guard channels.banner else { return }
         let ordinalString = ordinal(period)
         
         // Configure Custom Display Text Labels
@@ -677,6 +762,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             alertBannerTitle = tr("🏁 Full Match Complete!")
         case .halfTime:
             alertBannerTitle = tr("⏸ Half Time!")
+        case .timeLeft(let minutes):
+            let phrase = timeLeftPhrase(minutes)
+            alertBannerTitle = "⏱ " + phrase.prefix(1).uppercased() + phrase.dropFirst()
         }
         
         // Present the visual popup layout banner overlay
@@ -691,15 +779,32 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         if type == .matchComplete {
             for delay in [0.2, 0.4] { DispatchQueue.main.asyncAfter(deadline: .now() + delay) { generator.impactOccurred() } }
         }
-        if type == .halfTime { sendPanelAlert(.halfTime) }
-        if type == .matchComplete { sendPanelAlert(.matchEnd) }          // the panel says it too, not only the app banner
         sendAlertPayloadToWatch(type: type, banner: alertBannerTitle)
+    }
+    
+    /// The play button of a row on the Alerts and Sound page: announces the event as it is set up.
+    func testAlert(_ event: AlertEvent) {
+        switch event {
+        case .goal: goalScored(byHome: true)
+        case .timeLeft: triggerHapticAlert(type: .timeLeft(5))
+        case .matchStart:
+            triggerHapticAlert(type: .startEvent, event: .matchStart)
+            if alerts.channels(for: .matchStart).panel { sendPanelAlert(.gameStart) }
+        case .periodStart:
+            triggerHapticAlert(type: .startEvent, event: .periodStart)
+            if alerts.channels(for: .periodStart).panel { sendPanelAlert(.periodStart(2)) }
+        case .periodEnd:
+            lastEndedPeriod = period
+            triggerHapticAlert(type: .periodAdvance)
+        case .halfTime: triggerHapticAlert(type: .halfTime)
+        case .matchEnd: triggerHapticAlert(type: .matchComplete)
+        }
     }
     
     private func sendAlertPayloadToWatch(type: MatchEventType, banner: String) {
         guard WCSession.default.activationState == .activated else { return }
         let alertID: Int
-        switch type { case .startEvent: alertID = 1; case .periodAdvance: alertID = 2; case .matchComplete: alertID = 3; case .halfTime: alertID = 4 }
+        switch type { case .startEvent: alertID = 1; case .periodAdvance: alertID = 2; case .matchComplete: alertID = 3; case .halfTime: alertID = 4; case .timeLeft: alertID = 6 }
         WCSession.default.sendMessage(["triggerAlert": alertID, "alertText": banner], replyHandler: nil, errorHandler: nil)
     }
     
@@ -794,6 +899,8 @@ enum PanelAlertKind {
     case halfTime
     case goal(String)   // the full text, already translated
     case matchEnd       // the last period ran out: "FULL TIME"
+    case timeLeft(Int)  // "5 MIN LEFT"
+    case periodEnd(Int) // a period that is not the last one ran out: "END 1ST QUARTER"
 }
 
 /// The clock the board reports in its telemetry, with the time it was received.
