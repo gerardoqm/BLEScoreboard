@@ -2,6 +2,9 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.4.0 (25)
+- The bundled firmware is built with PSRAM disabled. The firmware never uses PSRAM, and with it enabled a board with a faulty PSRAM restarts in a loop at power-up, so updating it over Bluetooth would not leave it working. The same image now suits every board.
+
 ## 1.4.0 (24)
 - Live Activity: a second start now works. The app forgets an activity that was swiped away or ended by the system, picks up one left by an earlier run, and retries if iOS refused the start.
 - A more natural voice: the announcements use the best voice installed for the language (premium, then enhanced, then standard), a little slower, and the Alerts and Sound page lets you pick another one and hear it. Downloading an Enhanced or Premium voice in Settings > Accessibility > Spoken Content > Voices makes a big difference.

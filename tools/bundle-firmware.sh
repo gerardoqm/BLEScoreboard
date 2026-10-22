@@ -21,8 +21,9 @@ trap 'rm -rf "$BUILD_DIR"' EXIT
 
 [ -f "$SECRETS" ] || { echo "Missing $SECRETS (copy secrets.h.example)"; exit 1; }
 
+# PSRAM stays disabled: the firmware does not use it, and a board with a faulty PSRAM restarts in a loop at power-up when it is enabled.
 arduino-cli compile \
-  --fqbn "esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=opi,CDCOnBoot=cdc,UploadMode=default" \
+  --fqbn "esp32:esp32:esp32s3:FlashSize=16M,PartitionScheme=app3M_fat9M_16MB,PSRAM=disabled,CDCOnBoot=cdc,UploadMode=default" \
   --build-path "$BUILD_DIR" "$FIRMWARE_DIR"
 
 mkdir -p "$APP_FIRMWARE_DIR"
