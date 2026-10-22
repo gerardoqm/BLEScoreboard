@@ -2,7 +2,7 @@
 
 How to link your scoreboard and run a game with the app. The same walkthrough is built into the app: tap the **?** button.
 
-> Screenshots are generated from the app's debug demo mode (`-demo scanning|list|connected|connected-bottom`), so they use sample data. [Versión en español](TUTORIAL.es.md)
+> Screenshots are generated from the app's debug demo mode (`-demo scanning|list|connected|simulate`, see `tools/take-screenshots.sh`), so they use sample data. [Versión en español](TUTORIAL.es.md)
 
 ## 1. Find your scoreboard
 
@@ -20,15 +20,17 @@ Boards appear in the list as they are found, and the app keeps looking for more.
 
 ## 3. Run the game
 
-The top card shows the link status, the board's battery and the board name. Below it are the team names, the score steppers and the clock. **Start**, **Pause** and **Reset Clock** control the countdown, and the minutes stepper sets the period length. The clock runs on your phone, so the game keeps going if the link drops. When the board is back, the app relinks and resends the live state.
+The top card shows the link status, the board name, the board's battery (next to the unit name) and the **Board Firmware**, **Panel Colors** and brightness controls. Below it are the team names and one box with the period title, both scores, the countdown and the period controls. **Start**, **Pause** and the reset button control the countdown, and the minutes stepper sets the period length. The clock follows the real time on your phone, so the game keeps going if the link drops or iOS suspends the app. When the board is back, the app relinks and resends the live state.
+
+Every time a score goes up, from the phone or the watch, a **Goal by <team>** animation plays on the phone and the panel, with the emoji you choose in Panel Colors.
 
 <img src="images/3-game-en.png" width="280" alt="Scores, clock and match settings">
 
 ## 4. Set up the match
 
-Choose the current period, the total number of periods and the panel brightness. In the top card you can rename the period unit (for example Quarter, Half or Tiempo) and give the board its own name with **Rename**: the board saves it, restarts and relinks. Names use plain characters only (1 to 20), and the panel shows team names without accents.
+Use the arrows next to **Period** to go to the previous or next period (the clock stops and shows the full next period, ready to start), and the **Total** menu for the number of periods. The panel brightness sits next to **Panel Colors**. In the top card you can rename the period unit (for example Quarter, Half or Tiempo), type emoji in the team names, and give the board its own name with **Rename**: the board saves it, restarts and relinks. Board names use plain characters only (1 to 20).
 
-<img src="images/4-setup-en.png" width="280" alt="Period, total periods and brightness">
+<img src="images/4-setup-en.png" width="280" alt="Period controls and the simulated panel">
 
 ## 5. Choose panel colors
 
@@ -38,7 +40,7 @@ Tap **Panel Colors** in the top card. Pick the color of the timer (running and s
 
 ## 6. Start alerts
 
-When a game starts (period 1) or a later period starts, the panel flashes its border and scrolls `GAME START` or `PERIOD 2` across the screen at triple size, in the alert's color, then returns to the scoreboard. The alert plays when the clock starts from the full period length; resuming after a pause does not repeat it. On the colors page, **Play game start alert** and **Play period start alert** try them in the preview and on your board.
+When a game starts (period 1) or a later period starts, the panel flashes its border and scrolls the period name with its ordinal (`1ST QUARTER`, `2ND QUARTER`, ... or whatever unit name you set) across the screen at triple size, in the alert's color, then returns to the scoreboard. The alert plays when the clock starts from the full period length; resuming after a pause does not repeat it. On the colors page, **Play game start alert** and **Play period start alert** try them in the preview and on your board.
 
 <img src="images/6-alerts-en.png" width="280" alt="A start alert playing in the panel preview">
 
@@ -57,6 +59,32 @@ No board at hand, or want to see a whole match? On the Find Scoreboards screen t
 When a real board is linked, the simulated panel is the live preview of that board: the board mirrors the app, and a status line shows **Board in sync** when the board's own clock matches. **Exit simulator** (top card) goes back to the board list.
 
 <img src="images/8-simulator-button-en.png" width="240" alt="The Try the simulated board button"> <img src="images/8-simulator-en.png" width="240" alt="The simulated board at the bottom of the match screen">
+
+## 9. Update the board firmware
+
+Open **Board Firmware** in the top card. It shows the firmware on the board and the one inside the app, and updates the board over Bluetooth with a progress bar on the panel. The LED blinks red during the update, turns green when the new image is verified, and the board restarts by itself.
+
+<img src="images/9-firmware-en.png" width="280" alt="The Board Firmware page with an update available">
+
+## 10. Landscape scoreboard
+
+Turn the phone sideways on the match screen and the simulated panel fills the screen, with the score, period and clock controls in one row below. The screen stays on, so the phone works as the scoreboard if the real panel does not.
+
+<img src="images/10-landscape-en.png" width="560" alt="The landscape scoreboard">
+
+## 11. Language
+
+The globe button (top left of the Find Scoreboards screen, and in the top card of the match screen) forces English or Spanish, or follows the phone. The change applies at once to the whole app, the panel alerts and the Apple Watch.
+
+## 12. Alerts and sound
+
+Open **Alerts and Sound** in the top card. For each event (goal, time left, match start, period start, period end, half time, match end) choose **Audio**, the app **Banner** and the **Panel** separately, and tap the play button to try it. The phone speaks goals ("Goal by Whites") and the time left ("5 minutes left"), and plays referee whistles for periods and an air horn for the start and end of the match, in the app's language. Choose the minutes to announce (1 to 15), pick a voice (an Enhanced or Premium voice from Settings > Accessibility > Spoken Content sounds much more natural), and send everything to a Bluetooth speaker: pair it in iOS Settings, then choose it with the speaker button.
+
+<img src="images/11-alerts-en.png" width="280" alt="The Alerts and Sound page">
+
+## 13. Live Activity
+
+Once the clock starts, the match stays on the lock screen and in the Dynamic Island (scores, period and countdown), and on your Apple Watch, so you can switch apps or take a call without losing track. It ends when you disconnect, or 15 minutes after the final whistle. Turn it off with the **Live Activity** switch on the Alerts and Sound page.
 
 ## Troubleshooting
 

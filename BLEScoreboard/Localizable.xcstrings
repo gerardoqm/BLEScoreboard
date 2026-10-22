@@ -163,6 +163,376 @@
         }
       }
     },
+    "Language" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma"
+          }
+        }
+      }
+    },
+    "Automatic" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático"
+          }
+        }
+      }
+    },
+    "Match: %@ of %lld %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partido: %1$@ de %2$lld %3$@"
+          }
+        }
+      }
+    },
+    "FULL TIME" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FIN DEL PARTIDO"
+          }
+        }
+      }
+    },
+    "Alerts and Sound" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alertas y sonido"
+          }
+        }
+      }
+    },
+    "Audio announcements" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anuncios de audio"
+          }
+        }
+      }
+    },
+    "Speaker" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altavoz"
+          }
+        }
+      }
+    },
+    "Pair your Bluetooth speaker in Settings, then choose it here. Audio is spoken in the app's language; whistles and horns mark the start and end of periods and of the match." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vincula tu altavoz Bluetooth en Ajustes y elígelo aquí. El audio se dice en el idioma de la app; los silbatos y las bocinas marcan el inicio y el fin de los periodos y del partido."
+          }
+        }
+      }
+    },
+    "Audio" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio"
+          }
+        }
+      }
+    },
+    "Banner" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aviso"
+          }
+        }
+      }
+    },
+    "Panel" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Panel"
+          }
+        }
+      }
+    },
+    "Goal" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gol"
+          }
+        }
+      }
+    },
+    "Time left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo restante"
+          }
+        }
+      }
+    },
+    "Match start" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio del partido"
+          }
+        }
+      }
+    },
+    "Period start" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicio de periodo"
+          }
+        }
+      }
+    },
+    "Period end" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fin de periodo"
+          }
+        }
+      }
+    },
+    "Half time" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medio tiempo"
+          }
+        }
+      }
+    },
+    "Match end" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fin del partido"
+          }
+        }
+      }
+    },
+    "Test" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Probar"
+          }
+        }
+      }
+    },
+    "Banner shows on the phone (and vibrates the watch); Panel shows on the board. The play button tries an event." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El aviso se muestra en el teléfono (y hace vibrar el reloj); el panel, en el marcador. El botón de reproducir prueba un evento."
+          }
+        }
+      }
+    },
+    "Announce the time left at" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anunciar el tiempo restante a los"
+          }
+        }
+      }
+    },
+    "%lld min" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
+          }
+        }
+      }
+    },
+    "Only times shorter than the period are announced, once each, as the clock passes them." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo se anuncian los tiempos menores que el periodo, una vez cada uno, cuando el reloj los pasa."
+          }
+        }
+      }
+    },
+    "1 minute left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "queda 1 minuto"
+          }
+        }
+      }
+    },
+    "%lld minutes left" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "quedan %lld minutos"
+          }
+        }
+      }
+    },
+    "1 MIN LEFT" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUEDA 1 MIN"
+          }
+        }
+      }
+    },
+    "%lld MIN LEFT" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUEDAN %lld MIN"
+          }
+        }
+      }
+    },
+    "Live Activity" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actividad en vivo"
+          }
+        }
+      }
+    },
+    "Shows the scores, period and countdown on the lock screen and in the Dynamic Island, and on your Apple Watch, so you can switch apps or take a call without losing the match." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra el marcador, el periodo y la cuenta regresiva en la pantalla de bloqueo y en la Dynamic Island, y en tu Apple Watch, para que puedas cambiar de app o contestar una llamada sin perder el partido."
+          }
+        }
+      }
+    },
+    "END %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FIN %@"
+          }
+        }
+      }
+    },
+    "Minutes before the end of the period." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minutos antes de que termine el periodo."
+          }
+        }
+      }
+    },
+    "Voice" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voz"
+          }
+        }
+      }
+    },
+    "Hear it" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escucharla"
+          }
+        }
+      }
+    },
+    "Premium" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premium"
+          }
+        }
+      }
+    },
+    "Enhanced" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejorada"
+          }
+        }
+      }
+    },
+    "Standard" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estándar"
+          }
+        }
+      }
+    },
+    "For a more natural voice, download an Enhanced or Premium one in Settings > Accessibility > Spoken Content > Voices. It shows up here, and Automatic picks the best one installed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para una voz más natural, descarga una voz mejorada o premium en Ajustes > Accesibilidad > Contenido hablado > Voces. Aparece aquí, y Automático elige la mejor instalada."
+          }
+        }
+      }
+    },
     "🏁 Full Match Complete!" : {
       "localizations" : {
         "es" : {

@@ -548,8 +548,8 @@ struct LiveBoardPreview: View {
                     PanelFrame.alert(text: $0.text, color: $0.color, elapsed: $0.frozenAt ?? timeline.date.timeIntervalSince($0.start), icon: $0.icon, nameIcons: $0.nameIcons)
                 }
                 let frame = alert ?? PanelFrame.live(
-                    homeName: ble.panelText(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName, firstSlot: 0),
-                    awayName: ble.panelText(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName, firstSlot: 2),
+                    homeName: ble.panelText(ble.homeName.isEmpty ? tr("HOME") : ble.homeName, firstSlot: 0),
+                    awayName: ble.panelText(ble.awayName.isEmpty ? tr("AWAY") : ble.awayName, firstSlot: 2),
                     homeScore: ble.homeScore, awayScore: ble.awayScore, period: ble.period, totalPeriods: ble.totalPeriods,
                     minutes: ble.timerMin, seconds: ble.timerSec, running: ble.isTimerRunning,
                     colors: ble.panelColors, visible: ble.panelVisibility, time: timeline.date.timeIntervalSinceReferenceDate,
@@ -570,7 +570,7 @@ struct SimulatedBoardCard: View {
     /// Says which display this is: the linked board by name, or the simulator.
     @ViewBuilder private var titleLabel: some View {
         if ble.isConnected {
-            Label(ble.connectedBoardName ?? String(localized: "Linked board"), systemImage: "antenna.radiowaves.left.and.right")
+            Label(ble.connectedBoardName ?? tr("Linked board"), systemImage: "antenna.radiowaves.left.and.right")
                 .font(.caption).bold().foregroundColor(.green)
         } else {
             Label("Simulated board", systemImage: "display").font(.caption).bold().foregroundColor(.purple)

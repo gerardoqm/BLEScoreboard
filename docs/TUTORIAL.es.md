@@ -2,7 +2,7 @@
 
 Cómo vincular tu marcador y dirigir un partido con la app. El mismo recorrido está dentro de la app: toca el botón **?**.
 
-> Las capturas se generan con el modo demo de depuración de la app (`-demo scanning|list|connected|connected-bottom`), por eso usan datos de ejemplo. [English version](TUTORIAL.md)
+> Las capturas se generan con el modo demo de depuración de la app (`-demo scanning|list|connected|simulate`, mira `tools/take-screenshots.sh`), por eso usan datos de ejemplo. [English version](TUTORIAL.md)
 
 ## 1. Encuentra tu marcador
 
@@ -20,15 +20,17 @@ Los marcadores aparecen en la lista al encontrarse y la app sigue buscando más.
 
 ## 3. Dirige el partido
 
-La tarjeta superior muestra el estado de la conexión, la batería del marcador y su nombre. Debajo están los nombres de los equipos, los botones de puntos y el reloj. **Iniciar**, **Pausar** y **Reiniciar reloj** controlan la cuenta regresiva, y el control de minutos define la duración del periodo. El reloj corre en tu teléfono, así que el partido continúa aunque se pierda la conexión. Cuando el marcador vuelve, la app se reconecta y reenvía el estado actual.
+La tarjeta superior muestra el estado de la conexión, el nombre del marcador, su batería (junto al nombre del periodo) y los controles de **Firmware del marcador**, **Colores del panel** y brillo. Debajo están los nombres de los equipos y un solo cuadro con el título del periodo, los dos marcadores, la cuenta regresiva y los controles de periodo. **Iniciar**, **Pausar** y el botón de reinicio controlan la cuenta regresiva, y el control de minutos define la duración del periodo. El reloj sigue la hora real de tu teléfono, así que el partido continúa aunque se pierda la conexión o iOS suspenda la app. Cuando el marcador vuelve, la app se vincula de nuevo y reenvía el estado.
+
+Cada vez que sube un marcador, desde el teléfono o el reloj, se muestra una animación **Gol de <equipo>** en el teléfono y en el panel, con el emoji que elijas en Colores del panel.
 
 <img src="images/3-game-es.png" width="280" alt="Puntos, reloj y configuración del partido">
 
 ## 4. Configura el partido
 
-Elige el periodo actual, el total de periodos y el brillo del panel. En la tarjeta superior puedes cambiar el nombre del periodo (por ejemplo Cuarto, Mitad o Tiempo) y darle un nombre al marcador con **Cambiar**: el marcador lo guarda, se reinicia y se vuelve a vincular. Los nombres usan solo caracteres simples (de 1 a 20) y el panel muestra los nombres de los equipos sin acentos.
+Usa las flechas junto a **Periodo** para ir al periodo anterior o al siguiente (el reloj se detiene y muestra el periodo siguiente completo, listo para iniciar), y el menú **Total** para el número de periodos. El brillo del panel está junto a **Colores del panel**. En la tarjeta superior puedes cambiar el nombre del periodo (por ejemplo Cuarto, Mitad o Tiempo), escribir emojis en los nombres de los equipos y darle un nombre al marcador con **Cambiar**: el marcador lo guarda, se reinicia y se vuelve a vincular. Los nombres del marcador usan solo caracteres simples (de 1 a 20).
 
-<img src="images/4-setup-es.png" width="280" alt="Periodo, total de periodos y brillo">
+<img src="images/4-setup-es.png" width="280" alt="Controles de periodo y panel simulado">
 
 ## 5. Elige los colores del panel
 
@@ -38,7 +40,7 @@ Toca **Colores del panel** en la tarjeta superior. Elige el color del reloj (en 
 
 ## 6. Alertas de inicio
 
-Cuando empieza un partido (periodo 1) o un periodo posterior, el panel hace parpadear su borde y desplaza `INICIO PARTIDO` o `PERIODO 2` por la pantalla a triple tamaño, en el color de la alerta, y luego vuelve al marcador. La alerta suena cuando el reloj arranca desde la duración completa del periodo; al reanudar tras una pausa no se repite. En la página de colores, **Probar alerta de inicio** y **Probar alerta de periodo** las prueban en la vista previa y en tu marcador.
+Cuando empieza un partido (periodo 1) o un periodo posterior, el panel hace parpadear su borde y desplaza el nombre del periodo con su ordinal (`1ER TIEMPO`, `2DO PERIODO`, `3ER CUARTO`... o el nombre que hayas puesto) por la pantalla a triple tamaño, en el color de la alerta, y luego vuelve al marcador. La alerta suena cuando el reloj arranca desde la duración completa del periodo; al reanudar tras una pausa no se repite. En la página de colores, **Probar alerta de inicio** y **Probar alerta de periodo** las prueban en la vista previa y en tu marcador.
 
 <img src="images/6-alerts-es.png" width="280" alt="Una alerta de inicio reproduciéndose en la vista previa del panel">
 
@@ -57,6 +59,32 @@ La app del Watch te permite sumar o restar puntos (− y + para cada equipo), ca
 Cuando hay un marcador real vinculado, el panel simulado es la vista previa en vivo de ese marcador: el marcador refleja la app y una línea de estado muestra **Marcador sincronizado** cuando el reloj del propio marcador coincide. **Salir del simulador** (tarjeta superior) vuelve a la lista de marcadores.
 
 <img src="images/8-simulator-button-es.png" width="240" alt="El botón Probar el marcador simulado"> <img src="images/8-simulator-es.png" width="240" alt="El marcador simulado al final de la pantalla del partido">
+
+## 9. Actualiza el firmware del marcador
+
+Abre **Firmware del marcador** en la tarjeta superior. Muestra el firmware del marcador y el que trae la app, y actualiza el marcador por Bluetooth con una barra de progreso en el panel. El LED parpadea en rojo durante la actualización, se pone verde cuando la nueva imagen se verifica y el marcador se reinicia solo.
+
+<img src="images/9-firmware-es.png" width="280" alt="La página de firmware del marcador con una actualización disponible">
+
+## 10. Marcador en horizontal
+
+Gira el teléfono en la pantalla del partido y el panel simulado ocupa toda la pantalla, con los controles de puntos, periodo y reloj en una fila debajo. La pantalla se mantiene encendida, así que el teléfono funciona como marcador si el panel real no funciona.
+
+<img src="images/10-landscape-es.png" width="560" alt="El marcador en horizontal">
+
+## 11. Idioma
+
+El botón del globo (arriba a la izquierda en Buscar marcadores, y en la tarjeta superior de la pantalla del partido) fuerza inglés o español, o sigue el idioma del teléfono. El cambio se aplica al instante en toda la app, las alertas del panel y el Apple Watch.
+
+## 12. Alertas y sonido
+
+Abre **Alertas y sonido** en la tarjeta superior. Para cada evento (gol, tiempo restante, inicio del partido, inicio de periodo, fin de periodo, medio tiempo, fin del partido) elige por separado el **Audio**, el **Aviso** en la app y el **Panel**, y toca el botón de reproducir para probarlo. El teléfono dice los goles ("Gol de Blancos") y el tiempo restante ("quedan 5 minutos"), y suena un silbato de árbitro en los periodos y una bocina al inicio y al final del partido, en el idioma de la app. Elige los minutos a anunciar (de 1 a 15), escoge una voz (una voz mejorada o premium de Ajustes > Accesibilidad > Contenido hablado suena mucho más natural) y envía todo a un altavoz Bluetooth: vincúlalo en los Ajustes de iOS y elígelo con el botón del altavoz.
+
+<img src="images/11-alerts-es.png" width="280" alt="La página de alertas y sonido">
+
+## 13. Actividad en vivo
+
+Cuando arranca el reloj, el partido se queda en la pantalla de bloqueo y en la Dynamic Island (marcador, periodo y cuenta regresiva), y en tu Apple Watch, para que puedas cambiar de app o contestar una llamada sin perder el hilo. Termina cuando te desconectas, o 15 minutos después del silbatazo final. Se desactiva con el interruptor **Actividad en vivo** de la página de alertas y sonido.
 
 ## Solución de problemas
 

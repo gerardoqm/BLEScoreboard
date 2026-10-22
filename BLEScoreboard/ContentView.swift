@@ -2,29 +2,41 @@ import SwiftUI
 import CoreBluetooth
 
 /// Pulsing radar rings shown while the app scans for scoreboards.
+/// The rings are drawn from the clock, not from a stored animation, so they always start centered and in step
+/// (an implicit repeat-forever animation could get stuck half way after the screen was rebuilt, for example on a language change).
 struct ScanningRadarView: View {
-    @State private var pulse = false
     /// `-staticRadar` freezes the rings in an evenly spaced pose, used for tutorial screenshots.
     private let frozen = ProcessInfo.processInfo.arguments.contains("-staticRadar")
-    private let frozenScale: [CGFloat] = [0.55, 0.95, 1.35]
-    private let frozenOpacity: [Double] = [0.9, 0.55, 0.25]
+    private let frozenPhase: [Double] = [0.2, 0.55, 0.9]
+    private let period = 2.4          // seconds for one ring to grow and fade
+    private let spacing = 0.8         // delay between rings
+    
+    private func phase(_ ring: Int, at date: Date) -> Double {
+        if frozen { return frozenPhase[ring] }
+        let t = date.timeIntervalSinceReferenceDate - Double(ring) * spacing
+        return t.truncatingRemainder(dividingBy: period) / period
+    }
     
     var body: some View {
-        ZStack {
-            ForEach(0..<3, id: \.self) { i in
-                Circle()
-                    .stroke(Color.green.opacity(0.7), lineWidth: 3)
-                    .frame(width: 140, height: 140)
-                    .scaleEffect(frozen ? frozenScale[i] : (pulse ? 1.6 : 0.3))
-                    .opacity(frozen ? frozenOpacity[i] : (pulse ? 0 : 0.9))
-                    .animation(frozen ? nil : .easeOut(duration: 2.4).repeatForever(autoreverses: false).delay(Double(i) * 0.8), value: pulse)
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: frozen)) { timeline in
+            ZStack {
+                ForEach(0..<3, id: \.self) { ring in
+                    let p = phase(ring, at: timeline.date)
+                    let eased = 1 - (1 - p) * (1 - p)          // ease out
+                    Circle()
+                        .stroke(Color.green.opacity(0.7), lineWidth: 3)
+                        .frame(width: 140, height: 140)
+                        .scaleEffect(0.3 + 1.3 * eased)
+                        .opacity(0.9 * (1 - p))
+                }
+                Image(systemName: "dot.radiowaves.left.and.right")
+                    .font(.system(size: 34, weight: .semibold))
+                    .foregroundColor(.green)
             }
-            Image(systemName: "dot.radiowaves.left.and.right")
-                .font(.system(size: 34, weight: .semibold))
-                .foregroundColor(.green)
+            .frame(width: 220, height: 220)
         }
         .frame(width: 220, height: 220)
-        .onAppear { if !frozen { pulse = true } }
+        .clipped()
         .accessibilityHidden(true)
     }
 }
@@ -33,9 +45,11 @@ struct ContentView: View {
     @StateObject var ble = AdvancedBLEManager()
     @AppStorage("lastSavedMinutes") private var lastSavedMinutes: Int = 10
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
     @State private var newBoardName = ""
     @State private var showFirmware = ProcessInfo.processInfo.arguments.contains("-showFirmware")  // also used for screenshots
     @State private var showColors = ProcessInfo.processInfo.arguments.contains("-showColors")  // also used for screenshots
+    @State private var showAlertSettings = ProcessInfo.processInfo.arguments.contains("-showAlerts")  // also used for screenshots
     @State private var showTutorial = ProcessInfo.processInfo.arguments.contains("-showTutorial")  // also used for screenshots
     
     private var hasBoards: Bool { !ble.discoveredDevices.isEmpty || !ble.demoBoardNames.isEmpty }
@@ -48,12 +62,22 @@ struct ContentView: View {
         }
     }
     
-    func getOrdinalLabel(p: Int, total: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .ordinal
-        formatter.locale = Locale.current
-        let ordinalStr = formatter.string(from: NSNumber(value: p)) ?? "\(p)"
-        return String(localized: "\(ordinalStr) of \(total)")
+    /// The unit name in the plural: "quarter" -> "quarters", "half" -> "halves", "tiempo" -> "tiempos", "mitad" -> "mitades".
+    private func plural(_ word: String) -> String {
+        if AppLanguage.current.code == "es" {
+            return word + ((word.last.map { "aeiouáéíóú".contains($0) } ?? true) ? "s" : "es")
+        }
+        if ["s", "x", "z", "ch", "sh"].contains(where: { word.hasSuffix($0) }) { return word + "es" }
+        if word.hasSuffix("y"), let before = word.dropLast().last, !"aeiou".contains(before) { return word.dropLast() + "ies" }
+        if word.hasSuffix("f") { return word.dropLast() + "ves" }
+        return word + "s"
+    }
+    
+    /// The match title: "Match: 3rd of 4 quarters", "Partido: 1er de 4 tiempos" (the unit name is plural unless there is a single period).
+    func matchTitle(period: Int, total: Int) -> String {
+        let unit = ble.periodLabelText.trimmingCharacters(in: .whitespaces).lowercased()
+        let name = unit.isEmpty ? tr("Period").lowercased() : unit
+        return tr("Match: \(ordinal(period)) of \(total) \(total == 1 ? name : plural(name))")
     }
     
     var body: some View {
@@ -65,7 +89,7 @@ struct ContentView: View {
                         Text("Select your board to avoid interference.").font(.caption).foregroundColor(.secondary)
                         List {
                             ForEach(ble.discoveredDevices, id: \.identifier) { device in
-                                boardRow(name: device.name ?? String(localized: "Unnamed Scoreboard")) { ble.connect(to: device) }
+                                boardRow(name: device.name ?? tr("Unnamed Scoreboard")) { ble.connect(to: device) }
                             }
                             ForEach(ble.demoBoardNames, id: \.self) { name in
                                 boardRow(name: name) { }
@@ -104,11 +128,14 @@ struct ContentView: View {
                     }
                     .navigationTitle("Find Scoreboards")
                     .toolbar {
+                        ToolbarItem(placement: .topBarLeading) { LanguageMenu(ble: ble) }
                         ToolbarItem(placement: .topBarTrailing) {
                             Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
                                 .accessibilityLabel(Text("Tutorial"))
                         }
                     }
+                } else if verticalSizeClass == .compact && !showColors && !showFirmware && !showAlertSettings {
+                    LandscapeScoreboardView(ble: ble)       // phone turned sideways: the whole screen is the scoreboard
                 } else {
                     ScrollViewReader { proxy in
                     ScrollView {
@@ -118,6 +145,7 @@ struct ContentView: View {
                                     Text("Match Configuration").font(.caption).bold().foregroundColor(.secondary)
                                     Spacer()
                                     Text(LocalizedStringKey(ble.isSimulating ? "Simulator" : "Linked")).foregroundColor(ble.isSimulating ? .purple : .green).font(.caption2).bold()
+                                    LanguageMenu(ble: ble)
                                     Button { showTutorial = true } label: { Image(systemName: "questionmark.circle") }
                                         .accessibilityLabel(Text("Tutorial"))
                                     Button(LocalizedStringKey(ble.isSimulating ? "Exit simulator" : "Disconnect")) { ble.disconnect() }.font(.caption2).bold().foregroundColor(.red).buttonStyle(.bordered).controlSize(.mini).tint(.red)
@@ -188,6 +216,16 @@ struct ContentView: View {
                                     Stepper("LED Panel Brightness", value: $ble.brightness, in: 10...120, step: 5).labelsHidden()
                                 }
                                 .onChange(of: ble.brightness) { ble.syncDataToDisplay() }
+                                Button { showAlertSettings = true } label: {
+                                    HStack {
+                                        Image(systemName: "speaker.wave.2").foregroundColor(.teal)
+                                        Text("Alerts and Sound").font(.subheadline).bold()
+                                        Spacer()
+                                        Image(systemName: "chevron.right").font(.footnote).foregroundColor(.secondary)
+                                    }
+                                    .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
                                 Divider()
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 4) {
@@ -212,25 +250,25 @@ struct ContentView: View {
                             
                                             // One box: period title, both scores and the countdown, to save screen space.
                             VStack(spacing: 10) {
-                                Text("\(getOrdinalLabel(p: ble.period, total: ble.totalPeriods)) \(ble.periodLabelText) Match")
+                                Text(verbatim: matchTitle(period: ble.period, total: ble.totalPeriods))
                                     .font(.subheadline).bold().foregroundColor(.purple)
                                 HStack(spacing: 12) {
                                     VStack(spacing: 2) {
-                                        Text(ble.homeName.isEmpty ? String(localized: "HOME") : ble.homeName.uppercased()).font(.subheadline).bold().foregroundColor(.blue).lineLimit(1)
+                                        Text(ble.homeName.isEmpty ? tr("HOME") : ble.homeName.uppercased()).font(.subheadline).bold().foregroundColor(.blue).lineLimit(1)
                                         Text("\(ble.homeScore)").font(.system(size: 48, weight: .black, design: .monospaced))
                                         Stepper("", value: $ble.homeScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
                                     }.frame(maxWidth: .infinity)
                                     VStack(spacing: 2) {
-                                        Text(ble.awayName.isEmpty ? String(localized: "AWAY") : ble.awayName.uppercased()).font(.subheadline).bold().foregroundColor(.red).lineLimit(1)
+                                        Text(ble.awayName.isEmpty ? tr("AWAY") : ble.awayName.uppercased()).font(.subheadline).bold().foregroundColor(.red).lineLimit(1)
                                         Text("\(ble.awayScore)").font(.system(size: 48, weight: .black, design: .monospaced))
                                         Stepper("", value: $ble.awayScore, in: 0...99, onEditingChanged: { _ in ble.syncDataToDisplay() }).labelsHidden()
                                     }.frame(maxWidth: .infinity)
                                 }
                                 Divider()
                                 HStack(spacing: 10) {
-                                    Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 34, weight: .bold, design: .monospaced))
+                                    Text(String(format: "%02d:%02d", ble.timerMin, ble.timerSec)).font(.system(size: 34, weight: .bold, design: .monospaced)).lineLimit(1).minimumScaleFactor(0.6).layoutPriority(1)
                                     Spacer(minLength: 4)
-                                    Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green)
+                                    Button(LocalizedStringKey(ble.isTimerRunning ? "Pause" : "Start")) { ble.toggleClock() }.buttonStyle(.borderedProminent).tint(ble.isTimerRunning ? .orange : .green).lineLimit(1).fixedSize(horizontal: true, vertical: false)
                                     Button { ble.resetClockManual(minutes: lastSavedMinutes) } label: { Image(systemName: "arrow.counterclockwise") }
                                         .accessibilityLabel(Text("Reset Clock")).buttonStyle(.bordered)
                                     Stepper("Min", value: Binding(get: { ble.timerMin }, set: { newValue in ble.timerMin = newValue; lastSavedMinutes = newValue; ble.syncDataToDisplay() }), in: 1...90).labelsHidden()
@@ -268,6 +306,7 @@ struct ContentView: View {
                     }
                     .onChange(of: ble.isConnected) { newBoardName = "" }
                     .navigationDestination(isPresented: $showColors) { PanelColorsView(ble: ble) }
+                    .navigationDestination(isPresented: $showAlertSettings) { AlertSettingsView(ble: ble, alerts: ble.alerts) }
                     .navigationDestination(isPresented: $showFirmware) { FirmwareUpdateView(ble: ble, updater: ble.firmwareUpdater) }
                     }
                 }
@@ -313,6 +352,34 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showTutorial) { TutorialView() }
+        .onAppear {
+            #if DEBUG
+            // screenshots: `-landscape` turns the app sideways in the simulator
+            if ProcessInfo.processInfo.arguments.contains("-landscape"),
+               let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                scene.requestGeometryUpdate(.iOS(interfaceOrientations: .landscapeRight))
+            }
+            #endif
+        }
         .onChange(of: scenePhase) { _, phase in if phase == .active { ble.refreshClockAfterBackground() } }
+        .environment(\.locale, ble.language.locale)       // SwiftUI texts follow the language picked in the app
+    }
+}
+
+/// Language switch: follow the phone, or force English or Spanish. The watch follows too.
+struct LanguageMenu: View {
+    @ObservedObject var ble: AdvancedBLEManager
+    
+    var body: some View {
+        Menu {
+            Picker("Language", selection: $ble.language) {
+                Text("Automatic").tag(AppLanguage.system)
+                Text(verbatim: "English").tag(AppLanguage.english)
+                Text(verbatim: "Español").tag(AppLanguage.spanish)
+            }
+        } label: {
+            Image(systemName: "globe")
+        }
+        .accessibilityLabel(Text("Language"))
     }
 }

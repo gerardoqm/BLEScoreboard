@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 800" font-family="-apple-system, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="aBoth" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#576574"/></marker>
+    <marker id="aRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="14" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L10 5L0 10z" fill="#d63031"/></marker>
+    <marker id="aTeal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0f6e56"/></marker>
+    <marker id="aGray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="13" markerHeight="13" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7f8c8d"/></marker>
+  </defs>
+  <rect width="960" height="800" fill="#ffffff"/>
+  <text x="480" y="38" text-anchor="middle" font-size="24" font-weight="700" fill="#1e272e">System data pipeline</text>
+
+  <!-- Lock screen and Dynamic Island (Live Activity) -->
+  <rect x="30" y="64" width="260" height="70" rx="14" fill="#e1f5ee" stroke="#0f6e56" stroke-width="3"/>
+  <text x="160" y="93" text-anchor="middle" font-size="17" font-weight="700" fill="#1e272e">Lock screen + Dynamic Island</text>
+  <text x="160" y="116" text-anchor="middle" font-size="13" fill="#2d3436">Live Activity: scores, countdown</text>
+  <line x1="160" y1="190" x2="160" y2="134" stroke="#0f6e56" stroke-width="4" marker-end="url(#aTeal)"/>
+  <text x="172" y="168" font-size="12" fill="#0f6e56">Live Activity</text>
+
+  <!-- Apple Watch -->
+  <rect x="330" y="64" width="300" height="70" rx="14" fill="#f4f4f4" stroke="#7f8c8d" stroke-width="3"/>
+  <text x="480" y="93" text-anchor="middle" font-size="19" font-weight="700" fill="#1e272e">Apple Watch</text>
+  <text x="480" y="116" text-anchor="middle" font-size="13" fill="#2d3436">countdown, scores, period, start/pause</text>
+
+  <line x1="480" y1="134" x2="480" y2="190" stroke="#576574" stroke-width="4" marker-start="url(#aBoth)" marker-end="url(#aBoth)"/>
+  <text x="468" y="158" text-anchor="end" font-size="13" font-weight="700" fill="#2d3436">WatchConnectivity</text>
+  <text x="492" y="158" font-size="13" fill="#2d3436">live messages + saved state</text>
+  <text x="492" y="176" font-size="12" fill="#636e72">names, clock, scores, language</text>
+
+  <!-- Bluetooth speaker -->
+  <rect x="670" y="64" width="260" height="70" rx="14" fill="#fff4e0" stroke="#e67e22" stroke-width="3"/>
+  <text x="800" y="93" text-anchor="middle" font-size="19" font-weight="700" fill="#1e272e">Bluetooth speaker</text>
+  <text x="800" y="116" text-anchor="middle" font-size="13" fill="#2d3436">voice, whistles and horns</text>
+  <line x1="800" y1="190" x2="800" y2="134" stroke="#e67e22" stroke-width="4" marker-end="url(#aTeal)"/>
+  <text x="812" y="168" font-size="12" fill="#a05a10">audio</text>
+
+  <!-- iPhone -->
+  <rect x="140" y="190" width="680" height="130" rx="16" fill="#e8f1ff" stroke="#2f6fed" stroke-width="3"/>
+  <text x="480" y="217" text-anchor="middle" font-size="19" font-weight="700" fill="#1e272e">iPhone app: master clock and interface</text>
+  <g fill="#ffffff" stroke="#2f6fed" stroke-width="2">
+    <rect x="156" y="236" width="155" height="68" rx="10"/><rect x="321" y="236" width="155" height="68" rx="10"/><rect x="486" y="236" width="155" height="68" rx="10"/><rect x="651" y="236" width="155" height="68" rx="10"/>
+  </g>
+  <g text-anchor="middle" fill="#2d3436">
+    <text x="233" y="262" font-size="14" font-weight="700" fill="#1e272e">Clock</text><text x="233" y="283" font-size="12">follows real time</text>
+    <text x="398" y="262" font-size="14" font-weight="700" fill="#1e272e">Alerts</text><text x="398" y="283" font-size="12">banner, voice, sounds</text>
+    <text x="563" y="262" font-size="14" font-weight="700" fill="#1e272e">Live Activity</text><text x="563" y="283" font-size="12">lock screen, Island</text>
+    <text x="728" y="262" font-size="14" font-weight="700" fill="#1e272e">Panel preview</text><text x="728" y="283" font-size="12">portrait, landscape</text>
+  </g>
+
+  <!-- Bluetooth lanes -->
+  <text x="150" y="340" text-anchor="middle" font-size="14" font-weight="700" fill="#2f6fed">Bluetooth LE</text>
+  <g stroke-width="4" stroke="#576574">
+    <line x1="290" y1="320" x2="290" y2="520" marker-start="url(#aBoth)" marker-end="url(#aBoth)"/>
+    <line x1="480" y1="320" x2="480" y2="520" marker-start="url(#aBoth)" marker-end="url(#aBoth)"/>
+    <line x1="670" y1="320" x2="670" y2="520" marker-start="url(#aBoth)" marker-end="url(#aBoth)"/>
+  </g>
+  <g stroke-width="3">
+    <rect x="200" y="352" width="180" height="118" rx="12" fill="#e1f5ee" stroke="#0f6e56"/>
+    <rect x="390" y="352" width="180" height="118" rx="12" fill="#f3ecff" stroke="#8e44ad"/>
+    <rect x="580" y="352" width="180" height="118" rx="12" fill="#fff4e0" stroke="#e67e22"/>
+  </g>
+  <g text-anchor="middle" fill="#2d3436" font-size="12">
+    <text x="290" y="376" font-size="15" font-weight="700" fill="#1e272e">STATE</text>
+    <text x="290" y="398">phone: scores, clock, names</text>
+    <text x="290" y="418">board: telemetry every 2 s</text>
+    <text x="290" y="438" fill="#636e72">battery, version, flags</text>
+    <text x="290" y="458" fill="#636e72">always on</text>
+
+    <text x="480" y="376" font-size="15" font-weight="700" fill="#1e272e">CONFIG</text>
+    <text x="480" y="398">phone: colors, hide/show,</text>
+    <text x="480" y="418">alerts, icons, rename</text>
+    <text x="480" y="438">board: replies</text>
+    <text x="480" y="458" fill="#636e72">saved on the board</text>
+
+    <text x="670" y="376" font-size="15" font-weight="700" fill="#1e272e">OTA</text>
+    <text x="670" y="398">phone: firmware image,</text>
+    <text x="670" y="418">180-byte chunks, key check</text>
+    <text x="670" y="438">board: progress ACK</text>
+    <text x="670" y="458" fill="#636e72">Wi-Fi is off meanwhile</text>
+  </g>
+
+  <!-- ESP32-S3 -->
+  <rect x="190" y="520" width="580" height="130" rx="16" fill="#eaf8ef" stroke="#00a86b" stroke-width="3"/>
+  <text x="480" y="547" text-anchor="middle" font-size="19" font-weight="700" fill="#1e272e">ESP32-S3: display server</text>
+  <g fill="#ffffff" stroke="#00a86b" stroke-width="2">
+    <rect x="206" y="566" width="170" height="68" rx="10"/><rect x="390" y="566" width="170" height="68" rx="10"/><rect x="574" y="566" width="180" height="68" rx="10"/>
+  </g>
+  <g text-anchor="middle" fill="#2d3436">
+    <text x="291" y="592" font-size="14" font-weight="700" fill="#1e272e">Own clock</text><text x="291" y="613" font-size="12">counts its own seconds</text>
+    <text x="475" y="592" font-size="14" font-weight="700" fill="#1e272e">Draws the panel</text><text x="475" y="613" font-size="12">80x40 frame, alerts</text>
+    <text x="664" y="592" font-size="14" font-weight="700" fill="#1e272e">Status LED</text><text x="664" y="613" font-size="12">blue, cyan, green, red</text>
+  </g>
+
+  <!-- panel -->
+  <line x1="480" y1="650" x2="480" y2="702" stroke="#d63031" stroke-width="4" marker-end="url(#aRed)"/>
+  <text x="494" y="682" font-size="13" fill="#d63031">HUB75 ribbon</text>
+  <rect x="330" y="702" width="300" height="70" rx="14" fill="#f3ecff" stroke="#8e44ad" stroke-width="3"/>
+  <text x="480" y="731" text-anchor="middle" font-size="19" font-weight="700" fill="#1e272e">80x40 P4 LED panel</text>
+  <text x="480" y="754" text-anchor="middle" font-size="13" fill="#2d3436">scores, clock, names, alerts</text>
+
+  <!-- developer flashing -->
+  <rect x="20" y="702" width="250" height="70" rx="14" fill="#fff" stroke="#7f8c8d" stroke-width="3" stroke-dasharray="8 5"/>
+  <text x="145" y="731" text-anchor="middle" font-size="16" font-weight="700" fill="#1e272e">Developer flashing</text>
+  <text x="145" y="754" text-anchor="middle" font-size="13" fill="#2d3436">USB or Wi-Fi from the Arduino IDE</text>
+  <polyline points="145,702 145,676 262,676 262,652" fill="none" stroke="#7f8c8d" stroke-width="3" stroke-dasharray="8 5" marker-end="url(#aGray)"/>
+</svg>

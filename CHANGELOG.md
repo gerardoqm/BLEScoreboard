@@ -2,6 +2,48 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.4.0 (24)
+- Live Activity: a second start now works. The app forgets an activity that was swiped away or ended by the system, picks up one left by an earlier run, and retries if iOS refused the start.
+- A more natural voice: the announcements use the best voice installed for the language (premium, then enhanced, then standard), a little slower, and the Alerts and Sound page lets you pick another one and hear it. Downloading an Enhanced or Premium voice in Settings > Accessibility > Spoken Content > Voices makes a big difference.
+
+## 1.4.0 (23)
+- The end of a period (that is not the last one) now has a panel alert too: "END 1ST QUARTER" / "FIN 1ER TIEMPO". Its Panel switch on the Alerts and Sound page works like the others.
+- The time left can be announced at any minute from 1 to 15 (5, 3 and 1 by default): the voice, the banner and the panel say it for whatever you pick ("7 minutes left", "quedan 12 minutos").
+
+## 1.4.0 (22)
+- Live Activity: once the clock starts, the match shows on the lock screen and in the Dynamic Island (scores, period, countdown), and iOS mirrors it on the Apple Watch. The countdown runs by itself; the scores update when they change. It ends when you disconnect, or 15 minutes after the final whistle. It has its own switch on the Alerts and Sound page. It is a new widget extension (ScoreboardLiveActivity).
+
+## 1.4.0 (21)
+- Alerts and Sound page (top card): for every event (goal, time left, match start, period start, period end, half time, match end) choose audio, the app banner and the panel separately, with a play button to try each one.
+- Audio: goals and the time left are spoken in the app's language ("Goal by Whites", "5 minutes left" / "Gol de Blancos", "quedan 5 minutos"); referee whistles mark periods and a horn marks the start and end of the match. The time left is announced at 10, 5, 3, 2 and/or 1 minutes (5, 3 and 1 by default). Everything plays through the phone's current speaker, so a Bluetooth speaker works once it is paired and picked with the speaker button, music in other apps is lowered meanwhile, and the app keeps announcing while it is in the background.
+- The panel shows the time left too ("5 MIN LEFT" / "QUEDAN 5 MIN") and the watch taps on it.
+
+## 1.3.0 (20)
+- The end of the match is announced on the panel ("FULL TIME" / "FIN DEL PARTIDO"): the app sends the alert, and with firmware 1.3.0 the board also announces it by itself when its clock reaches zero in the last period, so it works even if the phone is gone. The app sends the board the text in its language.
+- The bundled firmware is 1.3.0.
+
+## 1.3.0 (19)
+- The match title uses the same ordinals and the unit name: "Match: 3rd of 4 quarters", "Partido: 1er de 4 tiempos" (the unit name is plural unless there is a single period).
+
+## 1.3.0 (18)
+- Period announcements use ordinals: "1st quarter", "2nd quarter", "3rd quarter" and "half time" in English, "1er tiempo", "2do periodo", "3er cuarto" and "medio tiempo" in Spanish, with the unit name you set. The first period now reads "1st quarter" instead of "GAME START" on the panel. The phone banner and the match title use the same ordinals.
+- The scanning radar is drawn from the clock instead of a stored animation, so it can no longer end up off-center or out of step after the screen is rebuilt (for example after switching language).
+
+## 1.3.0 (17)
+- The countdown and the Start button no longer wrap on narrower phones (iPhone 17 Pro and smaller).
+- New tutorial screenshots in English and Spanish (match screen, landscape, firmware page, watch with the countdown), made with `tools/take-screenshots.sh`; the tutorials describe the current screens and add the firmware, landscape and language sections.
+
+## 1.3.0 (16)
+- A goal alert on the panel is no longer cut at 16 characters: boards with firmware 1.2.3 take up to 32. Older boards still get the shortened text.
+- The period start alert on the panel uses your unit name ("Cuarto 2", "Quarter 2") instead of always saying "Period".
+- The bundled firmware is 1.2.3.
+
+## 1.3.0 (15)
+- Language switch: the globe button (on the scanner screen and in the match configuration card) forces English or Spanish, or follows the phone ("Automatic"). The choice is saved, applies at once to every text in the app, the board's alerts and the tutorial, and is sent to the Apple Watch, which switches too. Names left at the default ("HOME", "AWAY", "Period") change language with it.
+
+## 1.2.0 (14)
+- Landscape scoreboard: turn the phone sideways on the match screen (linked board or simulator) and the simulated LED panel fills the screen, with score, period and clock controls in one row below. The screen stays on, so the phone can serve as the scoreboard when the real panel does not work.
+
 ## 1.1.0 (13)
 Version raised from 1.0.0 to 1.1.0: builds 2 to 12 added features (watch countdown, goal and half-time alerts, goal icon, emoji in names, compact layout), which is a minor version. From now on the version changes with each release and the build number with each build.
 
