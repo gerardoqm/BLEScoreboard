@@ -33,6 +33,26 @@ struct AlertSettingsView: View {
                 .padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
                 .onChange(of: alerts.liveActivityEnabled) { ble.updateLiveActivity() }
                 
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Goal word", systemImage: "textformat").font(.subheadline).bold()
+                    TextField(tr("Goal"), text: $alerts.goalWord)
+                        .textFieldStyle(.roundedBorder)
+                        .onChange(of: alerts.goalWord) { if alerts.goalWord.count > 14 { alerts.goalWord = String(alerts.goalWord.prefix(14)) } }
+                    Text("What the goal alert says, for example \"Touchdown by LION\". Leave it empty to say \"Goal\". The panel shows capitals without accents.")
+                        .font(.caption).foregroundColor(.secondary)
+                }
+                .padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle(isOn: $alerts.tickerEnabled) {
+                        Label("Hundredths in the last minute", systemImage: "stopwatch").font(.subheadline).bold()
+                    }
+                    Text("In the last minute of a period the board adds hundredths of a second to the clock while it runs. Needs board firmware 1.6.1.")
+                        .font(.caption).foregroundColor(.secondary)
+                }
+                .padding().background(Color(.secondarySystemBackground)).cornerRadius(12)
+                .onChange(of: alerts.tickerEnabled) { ble.sendTicker() }
+                
                 VStack(alignment: .leading, spacing: 10) {
                     Toggle(isOn: $alerts.audioEnabled) {
                         Label("Audio announcements", systemImage: "speaker.wave.2.fill").font(.subheadline).bold()

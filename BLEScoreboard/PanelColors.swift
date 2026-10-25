@@ -27,6 +27,8 @@ struct RGB: Codable, Equatable {
 /// "set colors" command: keep it in sync with the color indexes in scoreboard_BT_ESP32S3.ino.
 enum PanelElement: String, CaseIterable, Identifiable {
     case timerRunning, timerStopped, period, homeName, homeScore, awayName, awayScore, alertGame, alertPeriod
+    /// The hundredths of a second in the last minute. Not part of the nine-color packet: it has its own command.
+    case timerHundredths
     
     var id: String { rawValue }
     
@@ -41,12 +43,15 @@ enum PanelElement: String, CaseIterable, Identifiable {
         case .awayScore: return "Away score"
         case .alertGame: return "Game start alert"
         case .alertPeriod: return "Period start alert"
+        case .timerHundredths: return "Hundredths"
         }
     }
     
     /// The timer has one switch for both of its colors, kept on the running row.
-    var visibilityKey: PanelElement { self == .timerStopped ? .timerRunning : self }
-    var hasVisibilitySwitch: Bool { self != .timerStopped }
+    var visibilityKey: PanelElement { self == .timerStopped || self == .timerHundredths ? .timerRunning : self }
+    var hasVisibilitySwitch: Bool { self != .timerStopped && self != .timerHundredths }
+    /// The elements of the color packet every board understands (the hundredths color goes in its own command).
+    static var packetElements: [PanelElement] { allCases.filter { $0 != .timerHundredths } }
     
     /// The colors the panel used before colors were configurable.
     var defaultColor: RGB {
@@ -58,6 +63,7 @@ enum PanelElement: String, CaseIterable, Identifiable {
         case .awayName, .awayScore: return RGB(255, 40, 40)
         case .alertGame: return RGB(0, 255, 0)
         case .alertPeriod: return RGB(0, 220, 255)
+        case .timerHundredths: return RGB(255, 40, 40)
         }
     }
 }
@@ -153,6 +159,7 @@ enum LEDFont {
         "/": ["001","001","010","100","100"],
         "%": ["101","001","010","100","101"],
         ":": ["0","1","0","1","0"],
+        ".": ["0","0","0","0","1"],
         " ": ["00","00","00","00","00"],
         "-": ["000","000","111","000","000"]
     ]
@@ -207,7 +214,10 @@ struct PanelFrame {
         func c(_ e: PanelElement) -> RGB { colors[e] ?? e.defaultColor }
         func shown(_ e: PanelElement) -> Bool { visible[e.visibilityKey] ?? true }
         var f = PanelFrame()
-        if shown(.timerRunning) { f.text("07:45", x: 2, y: 1, scale: 2, color: c(clockRunning ? .timerRunning : .timerStopped)) }
+        if shown(.timerRunning) {
+            f.text(clockRunning ? "0:41" : "07:45", x: 2, y: 1, scale: 2, color: c(clockRunning ? .timerRunning : .timerStopped))
+            if clockRunning { f.text(".36", x: 2 + LEDFont.units("0:41") * 2 + 2, y: 1, scale: 2, color: c(.timerHundredths)) }     // the last minute, with its hundredths
+        }
         let period = "2/4"
         if shown(.period) { f.text(period, x: 78 - LEDFont.units(period) * 2, y: 1, scale: 2, color: c(.period)) }
         for j in 0..<26 { f.set(40, 12 + j, RGB(40, 40, 40)) }
@@ -246,13 +256,28 @@ extension PanelFrame {
     /// The scoreboard with the real match state: the same layout the firmware draws.
     static func live(homeName: String, awayName: String, homeScore: Int, awayScore: Int, period: Int, totalPeriods: Int,
                      minutes: Int, seconds: Int, running: Bool, colors: [PanelElement: RGB], visible: [PanelElement: Bool] = [:],
-                     time: TimeInterval, icons: [[UInt16]] = []) -> PanelFrame {
+                     time: TimeInterval, icons: [[UInt16]] = [], tickerRemaining: Double? = nil) -> PanelFrame {
         func c(_ e: PanelElement) -> RGB { colors[e] ?? e.defaultColor }
         func shown(_ e: PanelElement) -> Bool { visible[e.visibilityKey] ?? true }
         var f = PanelFrame()
-        if shown(.timerRunning) { f.text(String(format: "%02d:%02d", minutes, seconds), x: 2, y: 1, scale: 2, color: c(running ? .timerRunning : .timerStopped)) }
         let periodText = "\(period)/\(totalPeriods)"
-        if shown(.period) { f.text(periodText, x: 78 - LEDFont.units(periodText) * 2, y: 1, scale: 2, color: c(.period)) }
+        let periodX = 78 - LEDFont.units(periodText) * 2
+        // last minute with the ticker on: whole seconds counted down (rounded down) and hundredths, both at the clock's size.
+        // The leading zeros give way when the period text is wide: 00:41.36, else 0:41.36, else 41.36 (like the firmware).
+        var clock = String(format: "%02d:%02d", minutes, seconds), ticks: String?, tickX = 0
+        if running, let remaining = tickerRemaining, remaining > 0, Int(ceil(remaining)) < 60 {
+            let whole = Int(remaining)
+            let hundredths = String(format: ".%02d", min(99, Int((remaining - floor(remaining)) * 100)))
+            for format in ["00:%02d", "0:%02d", "%d"] {
+                clock = String(format: format, whole)
+                tickX = 2 + LEDFont.units(clock) * 2 + 2
+                ticks = hundredths
+                if !shown(.period) || tickX + LEDFont.units(hundredths) * 2 + 3 <= periodX { break }
+            }
+        }
+        if shown(.timerRunning) { f.text(clock, x: 2, y: 1, scale: 2, color: c(running ? .timerRunning : .timerStopped)) }
+        if shown(.period) { f.text(periodText, x: periodX, y: 1, scale: 2, color: c(.period)) }
+        if shown(.timerRunning), let ticks { f.text(ticks, x: tickX, y: 1, scale: 2, color: c(.timerHundredths)) }
         for j in 0..<26 { f.set(40, 12 + j, RGB(40, 40, 40)) }
         for (value, center, element) in [(homeScore, 20, PanelElement.homeScore), (awayScore, 60, .awayScore)] where shown(element) {
             let text = String(value)
@@ -284,11 +309,12 @@ extension PanelFrame {
         }
         let textX = width - Int(elapsed * 1000 / 18)
         f.text(text, x: textX, y: 12, scale: 3, color: color, icons: nameIcons)
-        if let icon, icon.count == GoalIcon.size * GoalIcon.size {      // the icon rides in front of the text
-            for row in 0..<GoalIcon.size { for col in 0..<GoalIcon.size {
-                let v = icon[row * GoalIcon.size + col]
+        if let icon, let n = Optional(Int(Double(icon.count).squareRoot())), n > 0, n * n == icon.count {      // the icon rides in front of the text
+            let top = n == 32 ? (height - 32) / 2 : 12              // 32 x 32 is centered on the panel's height, 16 x 16 sits beside the text
+            for row in 0..<n { for col in 0..<n {
+                let v = icon[row * n + col]
                 guard v != 0 else { continue }
-                f.set(textX - 19 + col, 12 + row, RGB(rgb565: v))
+                f.set(textX - (n + 3) + col, top + row, RGB(rgb565: v))
             } }
         }
         return f
@@ -301,7 +327,7 @@ struct AlertPlayback {
     let color: RGB
     let start: Date
     var frozenAt: Double? = nil
-    /// 16 x 16 RGB565 pixels (0 = transparent) scrolled in front of the text, for goal alerts.
+    /// 32 x 32 (or 16 x 16 for older boards) RGB565 pixels (0 = transparent) scrolled in front of the text, for goal alerts.
     var icon: [UInt16]? = nil
     /// The pictures behind emoji characters (bytes 1-4) in the text, for goal alerts naming a team.
     var nameIcons: [[UInt16]] = []
@@ -344,13 +370,12 @@ enum EmojiBitmap {
     }
 }
 
-/// The emoji that can mark a goal, and the conversion of an emoji to the 16 x 16 picture the panel draws.
+/// The emoji that can mark a goal, and the conversion of an emoji to the 32 x 32 picture the panel draws (16 x 16 on older boards).
 enum GoalIcon {
     static let choices = ["⚽", "🥅", "🏆", "🥇", "🔥", "⭐", "🎯", "👏", "🎉", "🏀", "🏈", "⚾", "🏐", "🏒"]
     static let storeKey = "goalIcon"
-    static let size = 16
     
-    static func bitmap(for emoji: String) -> [UInt16]? { EmojiBitmap.make(emoji, size: size, fontSize: 13) }
+    static func bitmap(for emoji: String, size: Int = 32) -> [UInt16]? { EmojiBitmap.make(emoji, size: size, fontSize: size == 32 ? 27 : 13) }
 }
 
 struct LEDPanelPreview: View {
@@ -526,6 +551,7 @@ struct PanelColorsView: View {
                 let kind: PanelAlertKind = args[i + 1] == "period" ? .periodStart(2) : .gameStart
                 let element: PanelElement = args[i + 1] == "period" ? .alertPeriod : .alertGame
                 var playback = AlertPlayback(text: ble.panelAlertText(kind), color: ble.panelColors[element] ?? element.defaultColor, start: Date())
+                if args[i + 1] == "goal" { ble.testGoalAlert(); playback = ble.panelAlertPlayback ?? playback }
                 if let f = args.firstIndex(of: "-alertFreeze"), f + 1 < args.count { playback.frozenAt = Double(args[f + 1]) }
                 alert = playback
             }
@@ -553,7 +579,8 @@ struct LiveBoardPreview: View {
                     homeScore: ble.homeScore, awayScore: ble.awayScore, period: ble.period, totalPeriods: ble.totalPeriods,
                     minutes: ble.timerMin, seconds: ble.timerSec, running: ble.isTimerRunning,
                     colors: ble.panelColors, visible: ble.panelVisibility, time: timeline.date.timeIntervalSinceReferenceDate,
-                    icons: ble.nameIconBitmaps)
+                    icons: ble.nameIconBitmaps,
+                    tickerRemaining: ble.alerts.tickerEnabled ? ble.clockRemaining(at: timeline.date) : nil)
                 frame.draw(in: context, size: size)
             }
         }

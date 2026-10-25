@@ -77,7 +77,7 @@ struct ContentView: View {
     /// The match title: "Match: 3rd of 4 quarters", "Partido: 1er de 4 tiempos" (the unit name is plural unless there is a single period).
     func matchTitle(period: Int, total: Int) -> String {
         let unit = ble.periodLabelText.trimmingCharacters(in: .whitespaces).lowercased()
-        let name = unit.isEmpty ? tr("Period").lowercased() : unit
+        let name = unit.isEmpty ? defaultPeriodUnit().lowercased() : unit
         return tr("Match: \(ordinal(period)) of \(total) \(total == 1 ? name : plural(name))")
     }
     

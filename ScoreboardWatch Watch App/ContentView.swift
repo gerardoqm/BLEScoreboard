@@ -23,7 +23,7 @@ final class WatchModel: NSObject, ObservableObject, WCSessionDelegate {
     @Published var awayName = ""
     @Published var minutes = 10
     @Published var seconds = 0
-    @Published var periodLabelText = tr("Period")
+    @Published var periodLabelText = tr("default period unit")      // "Period" / "Tiempo" until the phone sends the name in use
     @Published var alertText = ""
     @Published var showAlert = false
 

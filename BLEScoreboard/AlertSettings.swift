@@ -38,6 +38,8 @@ final class AlertSettings: ObservableObject {
         var timeLeftMinutes: [Int]
         var liveActivityEnabled: Bool?      // added later: older saved settings do not have it
         var voiceIdentifier: String?
+        var goalWord: String?               // added later
+        var tickerEnabled: Bool?
     }
 
     /// Master switch for everything spoken or played.
@@ -47,6 +49,10 @@ final class AlertSettings: ObservableObject {
     @Published var liveActivityEnabled = true { didSet { save() } }
     /// The voice used for spoken announcements ("" = the best one installed).
     @Published var voiceIdentifier = "" { didSet { save() } }
+    /// The word of the goal alert ("Touchdown", "Home run"...); empty = "Goal" / "Gol".
+    @Published var goalWord = "" { didSet { save() } }
+    /// Hundredths of a second next to the clock in the last minute of a period.
+    @Published var tickerEnabled = true { didSet { save() } }
     /// Minutes before the end of a period at which the time left is announced.
     @Published var timeLeftMinutes: Set<Int> = [5, 3, 1] { didSet { save() } }
 
@@ -57,6 +63,8 @@ final class AlertSettings: ObservableObject {
             timeLeftMinutes = Set(stored.timeLeftMinutes)
             liveActivityEnabled = stored.liveActivityEnabled ?? true
             voiceIdentifier = stored.voiceIdentifier ?? ""
+            goalWord = stored.goalWord ?? ""
+            tickerEnabled = stored.tickerEnabled ?? true
         }
     }
 
@@ -73,7 +81,7 @@ final class AlertSettings: ObservableObject {
     }
 
     private func save() {
-        let stored = Stored(audioEnabled: audioEnabled, channels: channels, timeLeftMinutes: timeLeftMinutes.sorted(), liveActivityEnabled: liveActivityEnabled, voiceIdentifier: voiceIdentifier)
+        let stored = Stored(audioEnabled: audioEnabled, channels: channels, timeLeftMinutes: timeLeftMinutes.sorted(), liveActivityEnabled: liveActivityEnabled, voiceIdentifier: voiceIdentifier, goalWord: goalWord, tickerEnabled: tickerEnabled)
         UserDefaults.standard.set(voiceIdentifier, forKey: AudioAnnouncer.voiceKey)      // read by the announcer
         if let data = try? JSONEncoder().encode(stored) { UserDefaults.standard.set(data, forKey: Self.storeKey) }
     }
