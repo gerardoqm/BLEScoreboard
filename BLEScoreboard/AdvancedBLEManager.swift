@@ -27,7 +27,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var isTimerRunning = false
     @Published var homeName = tr("HOME")
     @Published var awayName = tr("AWAY")
-    @Published var periodLabelText = tr("Period")
+    @Published var periodLabelText = defaultPeriodUnit()
     /// The language picked in the app ("system" follows the phone). Names the user never changed follow the new language.
     @Published var language: AppLanguage = AppLanguage.current {
         didSet {
@@ -35,7 +35,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             UserDefaults.standard.set(language.rawValue, forKey: AppLanguage.storeKey)
             if homeName == tr("HOME", in: oldValue) { homeName = tr("HOME") }
             if awayName == tr("AWAY", in: oldValue) { awayName = tr("AWAY") }
-            if periodLabelText == tr("Period", in: oldValue) { periodLabelText = tr("Period") }
+            if periodLabelText == defaultPeriodUnit(in: oldValue) { periodLabelText = defaultPeriodUnit() }
             syncDataToDisplay()
         }
     }
@@ -125,6 +125,9 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     private let cmdVisibility: UInt8 = 0x05  // [0x05, mask low byte, mask high byte]; bit i = PanelElement i is shown
     private let cmdAlertIcon: UInt8 = 0x06   // [0x06, first row] + 1-4 rows of 16 RGB565 pixels (big-endian); [0x06] alone removes the icon
     private var iconSentToBoard: String?     // the emoji the board currently holds, so it is sent once per connection
+    private let cmdTicker: UInt8 = 0x0B   // [0x0B, 0 or 1]: hundredths of a second next to the clock in the last minute; protocol 12
+    private let cmdTickerColor: UInt8 = 0x0D   // [0x0D, RGB565 big-endian]: the color of those hundredths; protocol 12
+    private let cmdAlertIconBig: UInt8 = 0x0C   // [0x0C, first row] + 1-2 rows of 32 RGB565 pixels (big-endian); [0x0C] alone removes it; protocol 12
     private let cmdPanel: UInt8 = 0x0A    // [0x0A, preset 0-11]: saves the panel driver setting and restarts the board; protocol 11
     private let cmdMirror: UInt8 = 0x09   // [0x09, 1 = look for a second board | 2 = stop looking | 3 = unlink it]; protocol 10
     private let cmdAlert: UInt8 = 0x04    // [0x04, type (1 game start, 2 period start)] + 1-16 ASCII characters
@@ -382,7 +385,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     /// "1st quarter", "2do periodo"...: the ordinal and the unit name the user chose; the plain word only if the name has nothing the panel can show.
     private func periodAnnouncement(_ number: Int) -> String {
         let label = panelSafe(periodLabelText).trimmingCharacters(in: .whitespaces)
-        return "\(ordinal(number)) \(label.isEmpty ? tr("Period") : label)"
+        return "\(ordinal(number)) \(label.isEmpty ? defaultPeriodUnit() : label)"
     }
     
     func panelAlertText(_ kind: PanelAlertKind) -> String {
@@ -409,7 +412,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         guard panelVisibility[element] ?? true else { return }   // this alert is switched off
         var playback = AlertPlayback(text: panelAlertText(kind), color: panelColors[element] ?? element.defaultColor, start: Date())
         var isGoal = false
-        if case .goal = kind { isGoal = true; playback.icon = GoalIcon.bitmap(for: goalIcon); playback.nameIcons = nameIconBitmaps }
+        if case .goal = kind { isGoal = true; playback.icon = GoalIcon.bitmap(for: goalIcon, size: goalIconSize); playback.nameIcons = nameIconBitmaps }
         panelAlertPlayback = playback
         guard let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
         var type: UInt8 = 1
@@ -424,17 +427,26 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         peripheral.writeValue(Data([cmdAlert, type]) + Data(panelAlertText(kind).utf8), for: config, type: .withResponse)
     }
     
-    /// Sends the chosen emoji to the board as a 16 x 16 picture, four rows per write, once per connection and choice.
+    /// The goal icon is 32 x 32 on boards with protocol 12 and in the preview with no board; older boards draw 16 x 16.
+    var boardSupportsBigIcon: Bool { telemetryReceived && (boardProtocolVersion ?? 0) >= 12 }
+    var goalIconSize: Int { isConnected && !boardSupportsBigIcon ? 16 : 32 }
+    
+    /// Sends the chosen emoji to the board as a picture (32 x 32, two rows per write; 16 x 16, four rows per write for older boards),
+    /// once per connection and choice.
     private func sendGoalIconIfNeeded(peripheral: CBPeripheral, config: CBCharacteristic) {
-        guard iconSentToBoard != goalIcon else { return }
-        iconSentToBoard = goalIcon
-        guard let pixels = GoalIcon.bitmap(for: goalIcon) else {
-            peripheral.writeValue(Data([cmdAlertIcon]), for: config, type: .withResponse)    // no icon: the goal alert is text only
+        let size = goalIconSize
+        let key = "\(goalIcon)|\(size)"
+        guard iconSentToBoard != key else { return }
+        iconSentToBoard = key
+        let command = size == 32 ? cmdAlertIconBig : cmdAlertIcon
+        guard let pixels = GoalIcon.bitmap(for: goalIcon, size: size) else {
+            peripheral.writeValue(Data([command]), for: config, type: .withResponse)    // no icon: the goal alert is text only
             return
         }
-        for firstRow in stride(from: 0, to: GoalIcon.size, by: 4) {
-            var data = Data([cmdAlertIcon, UInt8(firstRow)])
-            for pixel in pixels[(firstRow * GoalIcon.size)..<((firstRow + 4) * GoalIcon.size)] {
+        let rowsPerWrite = size == 32 ? 2 : 4
+        for firstRow in stride(from: 0, to: size, by: rowsPerWrite) {
+            var data = Data([command, UInt8(firstRow)])
+            for pixel in pixels[(firstRow * size)..<((firstRow + rowsPerWrite) * size)] {
                 data.append(UInt8(pixel >> 8)); data.append(UInt8(pixel & 0xFF))
             }
             peripheral.writeValue(data, for: config, type: .withResponse)
@@ -518,11 +530,12 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     func sendColors() {
         guard let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
         var data = Data([cmdColors])
-        for element in PanelElement.allCases {
+        for element in PanelElement.packetElements {
             let value = (panelColors[element] ?? element.defaultColor).rgb565
             data.append(UInt8(value >> 8)); data.append(UInt8(value & 0xFF))
         }
         peripheral.writeValue(data, for: config, type: .withResponse)
+        sendTickerColor()
     }
     
     // MARK: - Board rename (CONFIG characteristic)
@@ -556,6 +569,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             let preset: Int? = data.count >= 12 && Int(data[11]) < Self.panelPresetNames.count ? Int(data[11]) : nil
             let secondBattery = data.count >= 11 && data[10] > 0 && data[10] <= 100 ? Int(data[10]) : nil
             DispatchQueue.main.async {
+                let wasKnown = self.telemetryReceived
                 let wasOnline = self.mirrorOnline
                 self.mirrorLinked = flags & 0x04 != 0
                 self.mirrorOnline = flags & 0x08 != 0
@@ -569,6 +583,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 self.boardProtocolVersion = version
                 self.boardFirmwareVersion = firmwareVersion
                 self.telemetryReceived = true
+                if !wasKnown { self.sendTicker() }      // the protocol version is known now
             }
             return
         }
@@ -580,7 +595,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 if let config = self.configCharacteristic {
                     peripheral.writeValue(Data([self.cmdApply]), for: config, type: .withResponse)
                 }
-            case (self.cmdColors, _), (self.cmdAlert, _), (self.cmdVisibility, _), (self.cmdAlertIcon, _), (self.cmdNameIcon, _), (self.cmdEndText, _), (self.cmdPanel, _):
+            case (self.cmdColors, _), (self.cmdAlert, _), (self.cmdVisibility, _), (self.cmdAlertIcon, _), (self.cmdNameIcon, _), (self.cmdEndText, _), (self.cmdPanel, _), (self.cmdTicker, _), (self.cmdTickerColor, _), (self.cmdAlertIconBig, _):
                 break   // colors need no feedback; boards without protocol 3 are reported by the version check
             case (self.cmdApply, 0):
                 self.renameStatus = tr("Renamed. The board is restarting...")
@@ -617,7 +632,32 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         iconSentToBoard = nil
         nameIconsSent = [String](repeating: "", count: 4)
         endTextSentToBoard = nil
-        sendColors(); sendVisibility(); syncDataToDisplay()
+        sendColors(); sendVisibility(); sendTicker(); syncDataToDisplay()
+    }
+    
+    // MARK: - Hundredths of a second in the last minute
+    var boardSupportsTicker: Bool { telemetryReceived && (boardProtocolVersion ?? 0) >= 12 }
+    
+    /// Tells the board whether to show hundredths of a second next to the clock in the last minute (it saves the choice).
+    func sendTicker() {
+        guard boardSupportsTicker, let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
+        peripheral.writeValue(Data([cmdTicker, alerts.tickerEnabled ? 1 : 0]), for: config, type: .withResponse)
+        sendTickerColor()
+    }
+    
+    /// The color of the hundredths of a second (its own command, so boards that do not know it never see a longer color packet).
+    func sendTickerColor() {
+        guard boardSupportsTicker, let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
+        let value = (panelColors[.timerHundredths] ?? PanelElement.timerHundredths.defaultColor).rgb565
+        peripheral.writeValue(Data([cmdTickerColor, UInt8(value >> 8), UInt8(value & 0xFF)]), for: config, type: .withResponse)
+    }
+    
+    /// Seconds until the clock reaches zero while it runs, for the hundredths in the preview; nil when it does not run.
+    var demoClockRemaining: Double?     // screenshots only
+    func clockRemaining(at date: Date) -> Double? {
+        if let demo = demoClockRemaining { return demo }
+        guard isTimerRunning, let end = clockEndDate else { return nil }
+        return max(0, end.timeIntervalSince(date))
     }
     
     // MARK: - Safe Interruption & Auto Reconnect Logic
@@ -728,7 +768,14 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         let panelName = (!isConnected || boardSupportsNameIcons) ? panelText(name, firstSlot: byHome ? 0 : 2) : name
         // spoken without emoji, which a voice would read out by their description
         let spokenName = String(name.filter { !EmojiBitmap.isEmoji($0) }).trimmingCharacters(in: .whitespaces)
-        return (tr("Goal by \(name)"), tr("Goal by \(panelName)"), tr("Goal by \(spokenName.isEmpty ? name : spokenName)"))
+        let word = goalWord
+        return (tr("\(word) by \(name)"), tr("\(word) by \(panelName)"), tr("\(word) by \(spokenName.isEmpty ? name : spokenName)"))
+    }
+    
+    /// What the goal alert says in front of the team: the word chosen on the Alerts page ("Touchdown", "Home run"...), or "Goal" / "Gol".
+    var goalWord: String {
+        let chosen = alerts.goalWord.trimmingCharacters(in: .whitespaces)
+        return chosen.isEmpty ? tr("Goal") : chosen
     }
     
     /// Plays a goal alert for the home team on the panel and the preview without changing the score.
@@ -915,7 +962,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             homeScore = 12; awayScore = 9
             period = 2; totalPeriods = 4
             timerMin = 7; timerSec = 45
-            periodLabelText = tr("Period")
+            periodLabelText = defaultPeriodUnit()
         case "list":
             isScanning = true
             demoBoardNames = ["Scoreboard_Beta", "Court 2"]
@@ -925,7 +972,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             homeScore = 12; awayScore = 9
             period = 2; totalPeriods = 4
             timerMin = 7; timerSec = 45
-            periodLabelText = tr("Period")
+            periodLabelText = defaultPeriodUnit()
             batteryPercent = 82; boardProtocolVersion = 11; telemetryReceived = true
             mirrorLinked = true; mirrorOnline = true; mirrorBattery = 64; boardPanelPreset = 0
             demoScrollToBottom = args[i + 1] == "connected-bottom"
@@ -940,6 +987,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             }
             demoBoardName = "Court 1"
         }
+        if let g = args.firstIndex(of: "-demoGoalWord"), g + 1 < args.count { alerts.goalWord = args[g + 1] }
+        if args.contains("-demoTicker") { timerMin = 0; timerSec = 42; isTimerRunning = true; demoClockRemaining = 41.37 }     // the clock in its last minute, held at 41.37 s
     }
     #endif
 }

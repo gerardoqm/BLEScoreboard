@@ -74,7 +74,7 @@
     <text x="670" y="398">phone: firmware image,</text>
     <text x="670" y="418">180-byte chunks, key check</text>
     <text x="670" y="438">board: progress ACK</text>
-    <text x="670" y="458" fill="#636e72">Wi-Fi is off meanwhile</text>
+    <text x="670" y="458" fill="#636e72">The board has no Wi-Fi</text>
   </g>
 
   <!-- ESP32-S3 -->
@@ -99,6 +99,6 @@
   <!-- developer flashing -->
   <rect x="20" y="702" width="250" height="70" rx="14" fill="#fff" stroke="#7f8c8d" stroke-width="3" stroke-dasharray="8 5"/>
   <text x="145" y="731" text-anchor="middle" font-size="16" font-weight="700" fill="#1e272e">Developer flashing</text>
-  <text x="145" y="754" text-anchor="middle" font-size="13" fill="#2d3436">USB or Wi-Fi from the Arduino IDE</text>
+  <text x="145" y="754" text-anchor="middle" font-size="13" fill="#2d3436">USB from the Arduino IDE</text>
   <polyline points="145,702 145,676 262,676 262,652" fill="none" stroke="#7f8c8d" stroke-width="3" stroke-dasharray="8 5" marker-end="url(#aGray)"/>
 </svg>

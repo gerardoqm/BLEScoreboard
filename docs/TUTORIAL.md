@@ -22,19 +22,19 @@ Boards appear in the list as they are found, and the app keeps looking for more.
 
 The top card shows the link status, the board name, the board's battery (next to the unit name) and the **Board Firmware**, **Panel Colors** and brightness controls. Below it are the team names and one box with the period title, both scores, the countdown and the period controls. **Start**, **Pause** and the reset button control the countdown, and the minutes stepper sets the period length. The clock follows the real time on your phone, so the game keeps going if the link drops or iOS suspends the app. When the board is back, the app relinks and resends the live state.
 
-Every time a score goes up, from the phone or the watch, a **Goal by <team>** animation plays on the phone and the panel, with the emoji you choose in Panel Colors.
+Every time a score goes up, from the phone or the watch, a **Goal by <team>** animation plays on the phone and the panel, with the emoji you choose in Panel Colors. You can change the word "Goal" in Alerts and Sound (step 12).
 
 <img src="images/3-game-en.png" width="280" alt="Scores, clock and match settings">
 
 ## 4. Set up the match
 
-Use the arrows next to **Period** to go to the previous or next period (the clock stops and shows the full next period, ready to start), and the **Total** menu for the number of periods. The panel brightness sits next to **Panel Colors**. In the top card you can rename the period unit (for example Quarter, Half or Tiempo), type emoji in the team names, and give the board its own name with **Rename**: the board saves it, restarts and relinks. Board names use plain characters only (1 to 20).
+Use the arrows next to **Period** to go to the previous or next period (the clock stops and shows the full next period, ready to start), and the **Total** menu for the number of periods. The panel brightness sits next to **Panel Colors**. In the top card you can rename the period unit (it starts as "Period", or "Tiempo" in Spanish; for example Quarter, Half or Cuarto), type emoji in the team names, and give the board its own name with **Rename**: the board saves it, restarts and relinks. Board names use plain characters only (1 to 20).
 
 <img src="images/4-setup-en.png" width="280" alt="Period controls and the simulated panel">
 
 ## 5. Choose panel colors
 
-Tap **Panel Colors** in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts, using the swatches or any color from the color picker. The preview at the top shows the panel as you choose. The board saves the colors, and the app sends them again every time you connect. Use the switch on a row to **hide** that element on the panel (the timer switch hides the timer whether it is running or stopped); an alert you switch off does not play. The preview and the simulated board hide it right away. **Reset colors** goes back to the default colors and leaves the switches as they are.
+Tap **Panel Colors** in the top card. Pick the color of the timer (running and stopped), the period, each team's name and score, and the two start alerts, using the swatches or any color from the color picker. The preview at the top shows the panel as you choose. The board saves the colors, and the app sends them again every time you connect. Use the switch on a row to **hide** that element on the panel (the timer switch hides the timer whether it is running or stopped); an alert you switch off does not play. The preview and the simulated board hide it right away. The **Hundredths** row is the color of the hundredths of a second that the panel shows in the last minute (see step 12). **Reset colors** goes back to the default colors and leaves the switches as they are.
 
 <img src="images/5-colors-en.png" width="280" alt="Panel Colors page with a live panel preview">
 
@@ -81,6 +81,14 @@ The globe button (top left of the Find Scoreboards screen, and in the top card o
 Open **Alerts and Sound** in the top card. For each event (goal, time left, match start, period start, period end, half time, match end) choose **Audio**, the app **Banner** and the **Panel** separately, and tap the play button to try it. The phone speaks goals ("Goal by Whites") and the time left ("5 minutes left"), and plays referee whistles for periods and an air horn for the start and end of the match, in the app's language. Choose the minutes to announce (1 to 15), pick a voice (an Enhanced or Premium voice from Settings > Accessibility > Spoken Content sounds much more natural), and send everything to a Bluetooth speaker: pair it in iOS Settings, then choose it with the speaker button.
 
 <img src="images/11-alerts-en.png" width="280" alt="The Alerts and Sound page">
+
+**Goal word.** Type the word you want, like "Touchdown" or "Home run", in **Goal word** and every goal alert (banner, voice, watch and panel) uses it: "Touchdown by LION". Leave it empty to say "Goal". The goal alert's emoji is now drawn at 32 x 32 pixels on the panel, so it is easy to see from a distance.
+
+<img src="images/13-goal-alert-en.png" width="280" alt="A goal alert with the big emoji and a custom goal word">
+
+**Hundredths in the last minute.** While the clock runs in the last minute of a period, the panel adds hundredths of a second to it, at the same size as the clock (`0:41.36`; the leading zeros give way when the period text is wide) and in the color of the **Hundredths** row of Panel Colors. Switch it off with **Hundredths in the last minute**. Both features need board firmware 1.6.1.
+
+<img src="images/14-ticker-en.png" width="280" alt="The simulated board with hundredths of a second next to the clock">
 
 ## 13. Live Activity
 

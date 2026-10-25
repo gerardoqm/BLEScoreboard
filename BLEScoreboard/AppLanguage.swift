@@ -35,6 +35,9 @@ func tr(_ value: String.LocalizationValue, in language: AppLanguage = .current) 
     String(localized: value, bundle: language.bundle)
 }
 
+/// What a match unit is called until the user types another name: "Period" in English, "Tiempo" in Spanish.
+func defaultPeriodUnit(in language: AppLanguage = .current) -> String { tr("default period unit", in: language) }
+
 /// The ordinal of a period as the scoreboard says it: "1st", "2nd", "3rd", "4th" in English and
 /// "1er", "2do", "3er", "4to", "5to", "6to", "7mo", "8vo", "9no" in Spanish (the unit names, "tiempo", "periodo" and "cuarto", are masculine).
 func ordinal(_ number: Int, in language: AppLanguage = .current) -> String {

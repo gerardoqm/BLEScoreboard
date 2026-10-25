@@ -22,19 +22,19 @@ Los marcadores aparecen en la lista al encontrarse y la app sigue buscando más.
 
 La tarjeta superior muestra el estado de la conexión, el nombre del marcador, su batería (junto al nombre del periodo) y los controles de **Firmware del marcador**, **Colores del panel** y brillo. Debajo están los nombres de los equipos y un solo cuadro con el título del periodo, los dos marcadores, la cuenta regresiva y los controles de periodo. **Iniciar**, **Pausar** y el botón de reinicio controlan la cuenta regresiva, y el control de minutos define la duración del periodo. El reloj sigue la hora real de tu teléfono, así que el partido continúa aunque se pierda la conexión o iOS suspenda la app. Cuando el marcador vuelve, la app se vincula de nuevo y reenvía el estado.
 
-Cada vez que sube un marcador, desde el teléfono o el reloj, se muestra una animación **Gol de <equipo>** en el teléfono y en el panel, con el emoji que elijas en Colores del panel.
+Cada vez que sube un marcador, desde el teléfono o el reloj, se muestra una animación **Gol de <equipo>** en el teléfono y en el panel, con el emoji que elijas en Colores del panel. Puedes cambiar la palabra "Gol" en Alertas y sonido (paso 12).
 
 <img src="images/3-game-es.png" width="280" alt="Puntos, reloj y configuración del partido">
 
 ## 4. Configura el partido
 
-Usa las flechas junto a **Periodo** para ir al periodo anterior o al siguiente (el reloj se detiene y muestra el periodo siguiente completo, listo para iniciar), y el menú **Total** para el número de periodos. El brillo del panel está junto a **Colores del panel**. En la tarjeta superior puedes cambiar el nombre del periodo (por ejemplo Cuarto, Mitad o Tiempo), escribir emojis en los nombres de los equipos y darle un nombre al marcador con **Cambiar**: el marcador lo guarda, se reinicia y se vuelve a vincular. Los nombres del marcador usan solo caracteres simples (de 1 a 20).
+Usa las flechas junto a **Periodo** para ir al periodo anterior o al siguiente (el reloj se detiene y muestra el periodo siguiente completo, listo para iniciar), y el menú **Total** para el número de periodos. El brillo del panel está junto a **Colores del panel**. En la tarjeta superior puedes cambiar el nombre del periodo (empieza como "Tiempo", o "Period" en inglés; por ejemplo Cuarto o Mitad), escribir emojis en los nombres de los equipos y darle un nombre al marcador con **Cambiar**: el marcador lo guarda, se reinicia y se vuelve a vincular. Los nombres del marcador usan solo caracteres simples (de 1 a 20).
 
 <img src="images/4-setup-es.png" width="280" alt="Controles de periodo y panel simulado">
 
 ## 5. Elige los colores del panel
 
-Toca **Colores del panel** en la tarjeta superior. Elige el color del reloj (en marcha y detenido), el periodo, el nombre y los puntos de cada equipo, y las dos alertas de inicio, con las muestras o con cualquier color del selector. La vista previa de arriba muestra el panel mientras eliges. El marcador guarda los colores y la app los envía de nuevo cada vez que te conectas. Usa el interruptor de una fila para **ocultar** ese elemento en el panel (el interruptor del reloj lo oculta tanto en marcha como detenido); una alerta apagada no se reproduce. La vista previa y el marcador simulado lo ocultan al instante. **Restablecer colores** vuelve a los colores predeterminados y deja los interruptores como están.
+Toca **Colores del panel** en la tarjeta superior. Elige el color del reloj (en marcha y detenido), el periodo, el nombre y los puntos de cada equipo, y las dos alertas de inicio, con las muestras o con cualquier color del selector. La vista previa de arriba muestra el panel mientras eliges. El marcador guarda los colores y la app los envía de nuevo cada vez que te conectas. Usa el interruptor de una fila para **ocultar** ese elemento en el panel (el interruptor del reloj lo oculta tanto en marcha como detenido); una alerta apagada no se reproduce. La vista previa y el marcador simulado lo ocultan al instante. La fila **Centésimas** es el color de las centésimas de segundo que el panel muestra en el último minuto (ver el paso 12). **Restablecer colores** vuelve a los colores predeterminados y deja los interruptores como están.
 
 <img src="images/5-colors-es.png" width="280" alt="Página de colores del panel con vista previa en vivo">
 
@@ -81,6 +81,14 @@ El botón del globo (arriba a la izquierda en Buscar marcadores, y en la tarjeta
 Abre **Alertas y sonido** en la tarjeta superior. Para cada evento (gol, tiempo restante, inicio del partido, inicio de periodo, fin de periodo, medio tiempo, fin del partido) elige por separado el **Audio**, el **Aviso** en la app y el **Panel**, y toca el botón de reproducir para probarlo. El teléfono dice los goles ("Gol de Blancos") y el tiempo restante ("quedan 5 minutos"), y suena un silbato de árbitro en los periodos y una bocina al inicio y al final del partido, en el idioma de la app. Elige los minutos a anunciar (de 1 a 15), escoge una voz (una voz mejorada o premium de Ajustes > Accesibilidad > Contenido hablado suena mucho más natural) y envía todo a un altavoz Bluetooth: vincúlalo en los Ajustes de iOS y elígelo con el botón del altavoz.
 
 <img src="images/11-alerts-es.png" width="280" alt="La página de alertas y sonido">
+
+**Palabra de gol.** Escribe la palabra que quieras, como "Touchdown" o "Home run", en **Palabra de gol** y todas las alertas de gol (aviso, voz, reloj y panel) la usan: "Touchdown de LION". Déjala vacía para decir "Gol". El emoji de la alerta de gol ahora se dibuja de 32 x 32 píxeles en el panel, para verse bien de lejos.
+
+<img src="images/13-goal-alert-es.png" width="280" alt="Una alerta de gol con el emoji grande y una palabra de gol propia">
+
+**Centésimas en el último minuto.** Mientras el reloj corre en el último minuto de un periodo, el panel le añade centésimas de segundo, del mismo tamaño que el reloj (`0:41.36`; los ceros iniciales ceden cuando el texto del periodo es ancho) y del color de la fila **Centésimas** de Colores del panel. Apágalo con **Centésimas en el último minuto**. Ambas funciones necesitan el firmware 1.6.1 de la placa.
+
+<img src="images/14-ticker-es.png" width="280" alt="El marcador simulado con centésimas de segundo junto al reloj">
 
 ## 13. Actividad en vivo
 

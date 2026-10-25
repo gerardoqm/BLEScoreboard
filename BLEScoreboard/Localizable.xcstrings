@@ -1925,6 +1925,83 @@
           }
         }
       }
+    },
+    "Goal word" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palabra de gol"
+          }
+        }
+      }
+    },
+    "What the goal alert says, for example \"Touchdown by LION\". Leave it empty to say \"Goal\". The panel shows capitals without accents." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo que dice la alerta de gol, por ejemplo «Touchdown de LION». Déjalo vacío para decir «Gol». El panel muestra mayúsculas sin acentos."
+          }
+        }
+      }
+    },
+    "Hundredths in the last minute" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Centésimas en el último minuto"
+          }
+        }
+      }
+    },
+    "%@ by %@" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de %@"
+          }
+        }
+      }
+    },
+    "Hundredths" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Centésimas"
+          }
+        }
+      }
+    },
+    "default period unit" : {
+      "comment" : "What a match unit is called until the user types another name",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Period"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiempo"
+          }
+        }
+      }
+    },
+    "In the last minute of a period the board adds hundredths of a second to the clock while it runs. Needs board firmware 1.6.1." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En el último minuto de un periodo la placa añade centésimas de segundo al reloj mientras corre. Necesita el firmware 1.6.1 de la placa."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

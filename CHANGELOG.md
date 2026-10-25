@@ -2,6 +2,23 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.6.0 (34)
+- README and tutorial (English and Spanish) cover the goal word, the bigger emoji, the hundredths and their color, the second display, the panel type and the new unit name default; screenshots regenerated. The hundredths hint says firmware 1.6.1.
+
+## 1.6.0 (33)
+- The factory name of a match unit is "Period" in English and "Tiempo" in Spanish (it was "Periodo"). It is still the Unit Name field: type another name ("Quarter", "Cuarto"...) and it stays yours. The watch follows too.
+
+## 1.6.0 (32)
+- Bundled firmware 1.6.1 (the full-size hundredths and their color; the earlier 1.6.0 board build only had small hundredths in the clock color). Boards on 1.6.0 will be offered the update.
+
+## 1.6.0 (31)
+- The hundredths of a second are as big as the clock digits (00:41.36; the leading zeros give way when the period text is wide: 0:41.36, 41.36) and have their own color: the new "Hundredths" row on the Panel Colors page (red by default).
+
+## 1.6.0 (30)
+- Goal word: the goal alert's word is yours. On the Alerts and Sound page, type "Touchdown", "Home run", "Gol"... and the banner, the voice, the watch and the panel say "Touchdown by LION" ("Touchdown de LION" in Spanish). Empty = "Goal" / "Gol".
+- A bigger emoji on the panel: the goal alert's picture is now 32 x 32 pixels (it was 16 x 16), centered on the panel's height, so it can be seen from the stands. Boards with older firmware keep the small one.
+- Hundredths of a second in the last minute: while the clock runs in the last minute of a period, the panel shows it as "00:41.36", counting the hundredths down for the drama. Switch it off on the Alerts and Sound page. The preview in the app shows it too. Needs the bundled firmware 1.6.0 (protocol 12).
+
 ## 1.5.0 (29)
 - Bundled firmware 1.5.1: in the panel diagnose mode a BOOT press now goes straight to the next test pattern (before, the board started normally and BOOT had to be pressed again within 2 seconds).
 
