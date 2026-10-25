@@ -98,6 +98,12 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     }
     @Published var goalText = ""
     @Published var goalByHome = true
+    @Published var mirrorLinked = false      // this board feeds a second board
+    @Published var mirrorOnline = false      // ... and that board answered lately
+    @Published var mirrorPairing = false     // this board is looking for a second board
+    @Published var boardIsMirror = false     // this board itself follows another one
+    @Published var mirrorBattery: Int?
+    @Published var boardPanelPreset: Int?    // the driver setting the board runs its panel with (protocol 11)
     @Published var showGoal = false
     @Published var showAlertBanner = false
     
@@ -119,6 +125,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     private let cmdVisibility: UInt8 = 0x05  // [0x05, mask low byte, mask high byte]; bit i = PanelElement i is shown
     private let cmdAlertIcon: UInt8 = 0x06   // [0x06, first row] + 1-4 rows of 16 RGB565 pixels (big-endian); [0x06] alone removes the icon
     private var iconSentToBoard: String?     // the emoji the board currently holds, so it is sent once per connection
+    private let cmdPanel: UInt8 = 0x0A    // [0x0A, preset 0-11]: saves the panel driver setting and restarts the board; protocol 11
+    private let cmdMirror: UInt8 = 0x09   // [0x09, 1 = look for a second board | 2 = stop looking | 3 = unlink it]; protocol 10
     private let cmdAlert: UInt8 = 0x04    // [0x04, type (1 game start, 2 period start)] + 1-16 ASCII characters
     static let deviceNameMaxLength = 20
     
@@ -544,7 +552,18 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             let battery = Int(data[4]), version = data.count >= 7 ? Int(data[6]) : 1
             let firmwareVersion: FirmwareVersion? = data.count >= 10 ? FirmwareVersion(Int(data[7]), Int(data[8]), Int(data[9])) : nil
             let clock = BoardClock(minutes: Int(data[0]), seconds: Int(data[1]), running: data[2] == 1, period: Int(data[3]), receivedAt: Date())
+            let flags = data.count >= 6 ? data[5] : 0
+            let preset: Int? = data.count >= 12 && Int(data[11]) < Self.panelPresetNames.count ? Int(data[11]) : nil
+            let secondBattery = data.count >= 11 && data[10] > 0 && data[10] <= 100 ? Int(data[10]) : nil
             DispatchQueue.main.async {
+                let wasOnline = self.mirrorOnline
+                self.mirrorLinked = flags & 0x04 != 0
+                self.mirrorOnline = flags & 0x08 != 0
+                self.boardIsMirror = flags & 0x10 != 0
+                self.mirrorPairing = flags & 0x20 != 0
+                self.boardPanelPreset = preset
+                self.mirrorBattery = self.mirrorOnline ? secondBattery : nil
+                if self.mirrorOnline && !wasOnline { self.resendEverythingToBoard() }   // the second board just appeared: it has no pictures or end text yet
                 self.boardClock = clock
                 self.batteryPercent = min(battery, 100)
                 self.boardProtocolVersion = version
@@ -561,7 +580,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 if let config = self.configCharacteristic {
                     peripheral.writeValue(Data([self.cmdApply]), for: config, type: .withResponse)
                 }
-            case (self.cmdColors, _), (self.cmdAlert, _), (self.cmdVisibility, _), (self.cmdAlertIcon, _), (self.cmdNameIcon, _), (self.cmdEndText, _):
+            case (self.cmdColors, _), (self.cmdAlert, _), (self.cmdVisibility, _), (self.cmdAlertIcon, _), (self.cmdNameIcon, _), (self.cmdEndText, _), (self.cmdPanel, _):
                 break   // colors need no feedback; boards without protocol 3 are reported by the version check
             case (self.cmdApply, 0):
                 self.renameStatus = tr("Renamed. The board is restarting...")
@@ -569,6 +588,36 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 self.renameStatus = tr("Board rejected the rename (code \(Int(status)))")
             }
         }
+    }
+    
+    // MARK: - Panel type (which driver chip setting the board uses for its LED panel)
+    /// Keep in sync with PANEL_PRESET_NAMES in scoreboard_BT_ESP32S3.ino. "B" is the same chip with the clock phase inverted.
+    static let panelPresetNames = ["SHIFTREG", "SHIFTREG B", "FM6124", "FM6124 B", "FM6126A", "FM6126A B",
+                                   "ICN2038S", "ICN2038S B", "MBI5124", "MBI5124 B", "DP3246", "DP3246 B"]
+    var boardSupportsPanelType: Bool { telemetryReceived && (boardProtocolVersion ?? 0) >= 11 }
+    
+    /// Saves the setting on the board, which restarts to use it; the app reconnects by itself.
+    func setPanelPreset(_ preset: Int) {
+        guard boardSupportsPanelType, preset >= 0, preset < Self.panelPresetNames.count,
+              let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
+        peripheral.writeValue(Data([cmdPanel, UInt8(preset)]), for: config, type: .withResponse)
+    }
+    
+    // MARK: - Second display (the board relays to a second board over ESP-NOW)
+    var boardSupportsMirror: Bool { telemetryReceived && (boardProtocolVersion ?? 0) >= 10 }
+    
+    /// 1 = the board looks for a second board for a minute, 2 = stop looking, 3 = unlink the second board.
+    func mirrorCommand(_ action: UInt8) {
+        guard boardSupportsMirror, let peripheral = connectedPeripheral, let config = configCharacteristic else { return }
+        peripheral.writeValue(Data([cmdMirror, action]), for: config, type: .withResponse)
+    }
+    
+    /// Forgets what the board holds (pictures, end text) and sends it all again: colors, visibility, state.
+    private func resendEverythingToBoard() {
+        iconSentToBoard = nil
+        nameIconsSent = [String](repeating: "", count: 4)
+        endTextSentToBoard = nil
+        sendColors(); sendVisibility(); syncDataToDisplay()
     }
     
     // MARK: - Safe Interruption & Auto Reconnect Logic
@@ -651,6 +700,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         boardClock = nil
         boardProtocolVersion = nil
         telemetryReceived = false
+        mirrorLinked = false; mirrorOnline = false; mirrorPairing = false; boardIsMirror = false; mirrorBattery = nil; boardPanelPreset = nil
         
         if wasIntentionalDisconnect {
             connectedPeripheral = nil
@@ -876,7 +926,8 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             period = 2; totalPeriods = 4
             timerMin = 7; timerSec = 45
             periodLabelText = tr("Period")
-            batteryPercent = 82; boardProtocolVersion = Self.expectedProtocolVersion; telemetryReceived = true
+            batteryPercent = 82; boardProtocolVersion = 11; telemetryReceived = true
+            mirrorLinked = true; mirrorOnline = true; mirrorBattery = 64; boardPanelPreset = 0
             demoScrollToBottom = args[i + 1] == "connected-bottom"
             if let f = args.firstIndex(of: "-fwDemo"), f + 1 < args.count {
                 switch args[f + 1] {

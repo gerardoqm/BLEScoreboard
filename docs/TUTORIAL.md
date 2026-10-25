@@ -86,6 +86,22 @@ Open **Alerts and Sound** in the top card. For each event (goal, time left, matc
 
 Once the clock starts, the match stays on the lock screen and in the Dynamic Island (scores, period and countdown), and on your Apple Watch, so you can switch apps or take a call without losing track. It ends when you disconnect, or 15 minutes after the final whistle. Turn it off with the **Live Activity** switch on the Alerts and Sound page.
 
+## 14. A second display
+
+You can put one board on each side of the field. The phone keeps a single Bluetooth link to the first board, which relays everything (score, clock, colors, alerts, pictures) to the second one over its own radio. Needs firmware 1.4.0 or newer on both boards.
+
+1. Connect to the first board and tap **Link a second display** in the **Second display** row.
+2. Within a minute, hold the **BOOT** button on the second board for 2 seconds, until both panels say LINKED.
+3. The row shows **Mirroring** and the second board's battery. **Unlink** (or holding BOOT for 6 seconds on the second board) separates them.
+
+A linked board no longer joins Wi-Fi: update it over Bluetooth, by connecting to it directly (unlink it first if it is the second board).
+
+## 15. Panel type
+
+A panel cannot tell the board which driver chip it has, so if a new panel stays dark, shows wrong colors or flickers, open **Panel type** and try another setting (12 in all). Each choice is saved on the board, which restarts and reconnects. With nothing on the panel, press **BOOT** on the board within 2 seconds after turning it on: the panel shows the setting's name over a test pattern, a short press tries the next one and holding it for 3 seconds leaves. Needs firmware 1.5.0.
+
+<img src="images/12-panel-type-en.png" width="280" alt="The Panel type page">
+
 ## Troubleshooting
 
 | Problem | What to try |

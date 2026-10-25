@@ -58,6 +58,7 @@ for lang in en es; do
   shot "$PHONE" $B $lang 9-firmware 640 -demo connected -showFirmware -fwDemo available
   shot "$PHONE" $B $lang 10-landscape 1000 -demo simulate -landscape
   shot "$PHONE" $B $lang 11-alerts 640 -demo connected -showAlerts
+  shot "$PHONE" $B $lang 12-panel-type 640 -demo connected -showPanelType
   # the first launch of the watch app is slow, so it gets one throw-away launch
   xcrun simctl launch --terminate-running-process "$WATCH" com.gerardoqm.BLEScoreboard.watchkitapp -demo >/dev/null; sleep 12
   shot "$WATCH" com.gerardoqm.BLEScoreboard.watchkitapp $lang 7-watch 416 -demo

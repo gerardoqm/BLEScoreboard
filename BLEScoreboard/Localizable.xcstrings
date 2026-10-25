@@ -1,9 +1,7 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
+    "" : {},
     "%@ %@ Match" : {
       "localizations" : {
         "es" : {
@@ -34,15 +32,9 @@
         }
       }
     },
-    "%@:" : {
-
-    },
-    "%lld" : {
-
-    },
-    "%lld%%" : {
-
-    },
+    "%@:" : {},
+    "%lld" : {},
+    "%lld%%" : {},
     "⏰ %@ %@ Starting!" : {
       "localizations" : {
         "es" : {
@@ -703,9 +695,7 @@
         }
       }
     },
-    "BLEScoreboard %@" : {
-
-    },
+    "BLEScoreboard %@" : {},
     "BLUES" : {
       "localizations" : {
         "es" : {
@@ -1822,6 +1812,116 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cuando empieza un partido o un periodo, el panel hace parpadear su borde y desplaza un mensaje por la pantalla en el color que elegiste. Usa los botones de reproducir de la página de colores para probar las alertas en la vista previa y en tu marcador."
+          }
+        }
+      }
+    },
+    "Second display" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segunda pantalla"
+          }
+        }
+      }
+    },
+    "Mirroring" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reflejando"
+          }
+        }
+      }
+    },
+    "Not answering" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin respuesta"
+          }
+        }
+      }
+    },
+    "Unlink" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desvincular"
+          }
+        }
+      }
+    },
+    "This board follows another board. Connect to the first board to control both." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta placa sigue a otra placa. Conéctate a la primera placa para controlar las dos."
+          }
+        }
+      }
+    },
+    "Hold BOOT on the second board for 2 seconds until the panel says LINKED." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén pulsado BOOT en la segunda placa 2 segundos hasta que el panel diga LINKED."
+          }
+        }
+      }
+    },
+    "Link a second display" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vincular una segunda pantalla"
+          }
+        }
+      }
+    },
+    "Panel type" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tipo de panel"
+          }
+        }
+      }
+    },
+    "If the panel stays dark, shows wrong colors or flickers, try another setting. Each choice is saved on the board, which restarts and reconnects. A setting is right when the scores and the clock look clean and the colors are correct." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si el panel se queda oscuro, muestra colores incorrectos o parpadea, prueba otro ajuste. Cada opción se guarda en la placa, que se reinicia y se reconecta. Un ajuste es correcto cuando los marcadores y el reloj se ven limpios y los colores son correctos."
+          }
+        }
+      }
+    },
+    "With no signal on the panel, press BOOT on the board within 2 seconds after turning it on to step through the settings with its test pattern." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si el panel no muestra nada, pulsa BOOT en la placa en los 2 segundos siguientes a encenderla para recorrer los ajustes con su patrón de prueba."
+          }
+        }
+      }
+    },
+    "Restart the board with this setting?" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Reiniciar la placa con este ajuste?"
           }
         }
       }
