@@ -12,7 +12,7 @@
 # Run this before building the app whenever the firmware changes.
 set -euo pipefail
 
-FIRMWARE_DIR="${1:-$HOME/Documents/Arduino/scoreboard_BT_ESP32S3}"
+FIRMWARE_DIR="${1:-$(cd "$(dirname "$0")/../.." && pwd)/scoreboard_BT_ESP32S3}"
 APP_FIRMWARE_DIR="$(cd "$(dirname "$0")/.." && pwd)/BLEScoreboard/Firmware"
 SKETCH="$FIRMWARE_DIR/scoreboard_BT_ESP32S3.ino"
 SECRETS="$FIRMWARE_DIR/secrets.h"

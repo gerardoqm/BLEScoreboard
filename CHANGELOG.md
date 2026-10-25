@@ -2,6 +2,18 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.5.0 (29)
+- Bundled firmware 1.5.1: in the panel diagnose mode a BOOT press now goes straight to the next test pattern (before, the board started normally and BOOT had to be pressed again within 2 seconds).
+
+## 1.5.0 (28)
+- Panel type page: a panel cannot tell the board which driver chip it has, so the page lets you try the 12 driver settings (6 chips, each with the clock phase as is or inverted). Pick one and the board saves it, restarts and the app reconnects. Bundled firmware 1.5.0 (protocol 11) also has a diagnose mode: press BOOT within 2 seconds of power-up, and BOOT steps through the settings with a test pattern on the panel (hold it for 3 seconds to leave).
+
+## 1.5.0 (27)
+- Bundled firmware 1.4.1: the board no longer joins Wi-Fi (no Wi-Fi password in the image); update it over Bluetooth with the Board Firmware page. A battery reading that fails no longer shows 0% for the second display.
+
+## 1.5.0 (26)
+- Second display: link a second board and it shows everything the first one does (score, clock, colors, alerts, goal and name pictures, end of match), so you can put one board on each side of the field. The phone keeps a single Bluetooth link; the first board relays to the second over ESP-NOW. Link them from "Second display" on the main page: tap "Link a second display", then hold BOOT for 2 seconds on the second board until both panels say LINKED. The row shows whether the second board answers and its battery. Needs firmware 1.4.0 on both boards. A linked board no longer joins the home Wi-Fi (update it over Bluetooth).
+
 ## 1.4.0 (25)
 - The bundled firmware is built with PSRAM disabled. The firmware never uses PSRAM, and with it enabled a board with a faulty PSRAM restarts in a loop at power-up, so updating it over Bluetooth would not leave it working. The same image now suits every board.
 

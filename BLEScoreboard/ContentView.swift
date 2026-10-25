@@ -49,6 +49,7 @@ struct ContentView: View {
     @State private var newBoardName = ""
     @State private var showFirmware = ProcessInfo.processInfo.arguments.contains("-showFirmware")  // also used for screenshots
     @State private var showColors = ProcessInfo.processInfo.arguments.contains("-showColors")  // also used for screenshots
+    @State private var showPanelType = ProcessInfo.processInfo.arguments.contains("-showPanelType")  // also used for screenshots
     @State private var showAlertSettings = ProcessInfo.processInfo.arguments.contains("-showAlerts")  // also used for screenshots
     @State private var showTutorial = ProcessInfo.processInfo.arguments.contains("-showTutorial")  // also used for screenshots
     
@@ -197,6 +198,20 @@ struct ContentView: View {
                                         .contentShape(Rectangle())
                                     }
                                     .buttonStyle(.plain)
+                                    if ble.boardSupportsMirror { MirrorBoardRow(ble: ble) }
+                                    if ble.boardSupportsPanelType {
+                                        Button { showPanelType = true } label: {
+                                            HStack {
+                                                Image(systemName: "square.grid.3x3").foregroundColor(.indigo)
+                                                Text("Panel type").font(.subheadline).bold()
+                                                Spacer()
+                                                if let preset = ble.boardPanelPreset { Text(AdvancedBLEManager.panelPresetNames[preset]).font(.caption2).foregroundColor(.secondary) }
+                                                Image(systemName: "chevron.right").font(.footnote).foregroundColor(.secondary)
+                                            }
+                                            .contentShape(Rectangle())
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
                                 }
                                 HStack(spacing: 10) {
                                     Button { showColors = true } label: {
@@ -306,6 +321,7 @@ struct ContentView: View {
                     }
                     .onChange(of: ble.isConnected) { newBoardName = "" }
                     .navigationDestination(isPresented: $showColors) { PanelColorsView(ble: ble) }
+                    .navigationDestination(isPresented: $showPanelType) { PanelTypeView(ble: ble) }
                     .navigationDestination(isPresented: $showAlertSettings) { AlertSettingsView(ble: ble, alerts: ble.alerts) }
                     .navigationDestination(isPresented: $showFirmware) { FirmwareUpdateView(ble: ble, updater: ble.firmwareUpdater) }
                     }

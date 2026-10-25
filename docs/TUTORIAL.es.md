@@ -86,6 +86,22 @@ Abre **Alertas y sonido** en la tarjeta superior. Para cada evento (gol, tiempo 
 
 Cuando arranca el reloj, el partido se queda en la pantalla de bloqueo y en la Dynamic Island (marcador, periodo y cuenta regresiva), y en tu Apple Watch, para que puedas cambiar de app o contestar una llamada sin perder el hilo. Termina cuando te desconectas, o 15 minutos después del silbatazo final. Se desactiva con el interruptor **Actividad en vivo** de la página de alertas y sonido.
 
+## 14. Una segunda pantalla
+
+Puedes poner una placa a cada lado del campo. El teléfono mantiene un solo enlace Bluetooth con la primera placa, que reenvía todo (marcador, reloj, colores, alertas, imágenes) a la segunda por su propia radio. Necesita el firmware 1.4.0 o posterior en las dos placas.
+
+1. Conéctate a la primera placa y toca **Vincular una segunda pantalla** en la fila **Segunda pantalla**.
+2. En el siguiente minuto, mantén pulsado el botón **BOOT** de la segunda placa 2 segundos, hasta que los dos paneles digan LINKED.
+3. La fila muestra **Reflejando** y la batería de la segunda placa. **Desvincular** (o mantener BOOT 6 segundos en la segunda placa) las separa.
+
+Una placa vinculada ya no se conecta al Wi-Fi: actualízala por Bluetooth, conectándote directamente a ella (desvincúlala antes si es la segunda).
+
+## 15. Tipo de panel
+
+Un panel no puede decirle a la placa qué chip controlador tiene, así que si un panel nuevo se queda oscuro, muestra colores incorrectos o parpadea, abre **Tipo de panel** y prueba otro ajuste (12 en total). Cada opción se guarda en la placa, que se reinicia y se reconecta. Si el panel no muestra nada, pulsa **BOOT** en la placa en los 2 segundos siguientes a encenderla: el panel muestra el nombre del ajuste sobre un patrón de prueba, una pulsación corta prueba el siguiente y mantenerlo 3 segundos sale. Necesita el firmware 1.5.0.
+
+<img src="images/12-panel-type-es.png" width="280" alt="La página Tipo de panel">
+
 ## Solución de problemas
 
 | Problema | Qué probar |

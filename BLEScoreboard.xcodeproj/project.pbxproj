@@ -7,18 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DAF444B230816DA0000DB580 /* ScoreboardWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = DAF444A830816D9D000DB580 /* ScoreboardWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		B0A1C2D3E4F506172839AA0C /* ScoreboardLiveActivity.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B0A1C2D3E4F506172839AA01 /* ScoreboardLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		DAF444B230816DA0000DB580 /* ScoreboardWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = DAF444A830816D9D000DB580 /* ScoreboardWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		DAF444B030816DA0000DB580 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = ECFCC653307DB1C0006F52C7 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = DAF444A730816D9D000DB580;
-			remoteInfo = "ScoreboardWatch Watch App";
-		};
 		B0A1C2D3E4F506172839AA0D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = ECFCC653307DB1C0006F52C7 /* Project object */;
@@ -26,20 +19,16 @@
 			remoteGlobalIDString = B0A1C2D3E4F506172839AA04;
 			remoteInfo = ScoreboardLiveActivity;
 		};
+		DAF444B030816DA0000DB580 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = ECFCC653307DB1C0006F52C7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DAF444A730816D9D000DB580;
+			remoteInfo = "ScoreboardWatch Watch App";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		DAF444B630816DA0000DB580 /* Embed Watch Content */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
-			dstSubfolderSpec = 16;
-			files = (
-				DAF444B230816DA0000DB580 /* ScoreboardWatch Watch App.app in Embed Watch Content */,
-			);
-			name = "Embed Watch Content";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		B0A1C2D3E4F506172839AA0B /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -51,25 +40,26 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DAF444B630816DA0000DB580 /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				DAF444B230816DA0000DB580 /* ScoreboardWatch Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B0A1C2D3E4F506172839AA01 /* ScoreboardLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScoreboardLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DAF444A830816D9D000DB580 /* ScoreboardWatch Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ScoreboardWatch Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECFCC65B307DB1C0006F52C7 /* BLEScoreboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BLEScoreboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		B0A1C2D3E4F506172839AA01 /* ScoreboardLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ScoreboardLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		DAF444A930816D9D000DB580 /* ScoreboardWatch Watch App */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "ScoreboardWatch Watch App";
-			sourceTree = "<group>";
-		};
-		ECFCC65D307DB1C0006F52C7 /* BLEScoreboard */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = BLEScoreboard;
-			sourceTree = "<group>";
-		};
 		B0A1C2D3E4F506172839AA02 /* ScoreboardLiveActivity */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ScoreboardLiveActivity;
@@ -80,9 +70,26 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		DAF444A930816D9D000DB580 /* ScoreboardWatch Watch App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "ScoreboardWatch Watch App";
+			sourceTree = "<group>";
+		};
+		ECFCC65D307DB1C0006F52C7 /* BLEScoreboard */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BLEScoreboard;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		B0A1C2D3E4F506172839AA06 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DAF444A530816D9D000DB580 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -91,13 +98,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		ECFCC658307DB1C0006F52C7 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B0A1C2D3E4F506172839AA06 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -131,6 +131,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		B0A1C2D3E4F506172839AA04 /* ScoreboardLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B0A1C2D3E4F506172839AA08 /* Build configuration list for PBXNativeTarget "ScoreboardLiveActivity" */;
+			buildPhases = (
+				B0A1C2D3E4F506172839AA05 /* Sources */,
+				B0A1C2D3E4F506172839AA06 /* Frameworks */,
+				B0A1C2D3E4F506172839AA07 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				B0A1C2D3E4F506172839AA02 /* ScoreboardLiveActivity */,
+				B0A1C2D3E4F506172839AA03 /* Shared */,
+			);
+			name = ScoreboardLiveActivity;
+			packageProductDependencies = (
+			);
+			productName = ScoreboardLiveActivity;
+			productReference = B0A1C2D3E4F506172839AA01 /* ScoreboardLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		DAF444A730816D9D000DB580 /* ScoreboardWatch Watch App */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DAF444B330816DA0000DB580 /* Build configuration list for PBXNativeTarget "ScoreboardWatch Watch App" */;
@@ -170,8 +193,8 @@
 				B0A1C2D3E4F506172839AA0E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				ECFCC65D307DB1C0006F52C7 /* BLEScoreboard */,
 				B0A1C2D3E4F506172839AA03 /* Shared */,
+				ECFCC65D307DB1C0006F52C7 /* BLEScoreboard */,
 			);
 			name = BLEScoreboard;
 			packageProductDependencies = (
@@ -179,29 +202,6 @@
 			productName = BLEScoreboard;
 			productReference = ECFCC65B307DB1C0006F52C7 /* BLEScoreboard.app */;
 			productType = "com.apple.product-type.application";
-		};
-		B0A1C2D3E4F506172839AA04 /* ScoreboardLiveActivity */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = B0A1C2D3E4F506172839AA08 /* Build configuration list for PBXNativeTarget "ScoreboardLiveActivity" */;
-			buildPhases = (
-				B0A1C2D3E4F506172839AA05 /* Sources */,
-				B0A1C2D3E4F506172839AA06 /* Frameworks */,
-				B0A1C2D3E4F506172839AA07 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				B0A1C2D3E4F506172839AA02 /* ScoreboardLiveActivity */,
-				B0A1C2D3E4F506172839AA03 /* Shared */,
-			);
-			name = ScoreboardLiveActivity;
-			packageProductDependencies = (
-			);
-			productName = ScoreboardLiveActivity;
-			productReference = B0A1C2D3E4F506172839AA01 /* ScoreboardLiveActivity.appex */;
-			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -213,13 +213,13 @@
 				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
+					B0A1C2D3E4F506172839AA04 = {
+						CreatedOnToolsVersion = 26.5;
+					};
 					DAF444A730816D9D000DB580 = {
 						CreatedOnToolsVersion = 27.0;
 					};
 					ECFCC65A307DB1C0006F52C7 = {
-						CreatedOnToolsVersion = 26.5;
-					};
-					B0A1C2D3E4F506172839AA04 = {
 						CreatedOnToolsVersion = 26.5;
 					};
 				};
@@ -247,6 +247,13 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B0A1C2D3E4F506172839AA07 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DAF444A630816D9D000DB580 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -261,16 +268,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B0A1C2D3E4F506172839AA07 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		B0A1C2D3E4F506172839AA05 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
 		DAF444A430816D9D000DB580 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -285,36 +292,90 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		B0A1C2D3E4F506172839AA05 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		DAF444B130816DA0000DB580 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = DAF444A730816D9D000DB580 /* ScoreboardWatch Watch App */;
-			targetProxy = DAF444B030816DA0000DB580 /* PBXContainerItemProxy */;
-		};
 		B0A1C2D3E4F506172839AA0E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = B0A1C2D3E4F506172839AA04 /* ScoreboardLiveActivity */;
 			targetProxy = B0A1C2D3E4F506172839AA0D /* PBXContainerItemProxy */;
 		};
+		DAF444B130816DA0000DB580 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DAF444A730816D9D000DB580 /* ScoreboardWatch Watch App */;
+			targetProxy = DAF444B030816DA0000DB580 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		B0A1C2D3E4F506172839AA09 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 29;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/LiveActivity-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Scoreboard Live Activity";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.5.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gerardoqm.BLEScoreboard.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B0A1C2D3E4F506172839AA0A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 29;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/LiveActivity-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Scoreboard Live Activity";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.5.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gerardoqm.BLEScoreboard.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		DAF444B430816DA0000DB580 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 29;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ScoreboardWatch;
@@ -324,7 +385,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gerardoqm.BLEScoreboard.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -346,7 +407,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 29;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = ScoreboardWatch;
@@ -356,7 +417,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gerardoqm.BLEScoreboard.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -499,7 +560,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 29;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -521,7 +582,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gerardoqm.BLEScoreboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -544,7 +605,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
+				CURRENT_PROJECT_VERSION = 29;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
@@ -566,7 +627,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
-				MARKETING_VERSION = 1.4.0;
+				MARKETING_VERSION = 1.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gerardoqm.BLEScoreboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -583,70 +644,18 @@
 			};
 			name = Release;
 		};
-		B0A1C2D3E4F506172839AA09 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Config/LiveActivity-Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Scoreboard Live Activity";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.4.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.gerardoqm.BLEScoreboard.LiveActivity;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-			};
-			name = Debug;
-		};
-		B0A1C2D3E4F506172839AA0A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 25;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Config/LiveActivity-Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "Scoreboard Live Activity";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.4.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.gerardoqm.BLEScoreboard.LiveActivity;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		B0A1C2D3E4F506172839AA08 /* Build configuration list for PBXNativeTarget "ScoreboardLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B0A1C2D3E4F506172839AA09 /* Debug */,
+				B0A1C2D3E4F506172839AA0A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		DAF444B330816DA0000DB580 /* Build configuration list for PBXNativeTarget "ScoreboardWatch Watch App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -670,15 +679,6 @@
 			buildConfigurations = (
 				ECFCC667307DB1C2006F52C7 /* Debug */,
 				ECFCC668307DB1C2006F52C7 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		B0A1C2D3E4F506172839AA08 /* Build configuration list for PBXNativeTarget "ScoreboardLiveActivity" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				B0A1C2D3E4F506172839AA09 /* Debug */,
-				B0A1C2D3E4F506172839AA0A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
