@@ -100,7 +100,7 @@ Puedes poner una placa a cada lado del campo. El teléfono mantiene un solo enla
 
 1. Conéctate a la primera placa y toca **Vincular una segunda pantalla** en la fila **Segunda pantalla**.
 2. En el siguiente minuto, mantén pulsado el botón **BOOT** de la segunda placa 2 segundos, hasta que los dos paneles digan LINKED.
-3. La fila muestra **Reflejando** y la batería de la segunda placa. **Desvincular** (o mantener BOOT 6 segundos en la segunda placa) las separa.
+3. El LED de estado de la segunda placa parpadea dos veces en verde cada segundo mientras está vinculada, y la fila muestra **Sincronizando** hasta que la segunda placa confirma que tiene la imagen, y luego **Reflejando**, con la batería de la segunda placa. **Desvincular** (o mantener BOOT 6 segundos en la segunda placa) las separa.
 
 Una placa vinculada ya no se conecta al Wi-Fi: actualízala por Bluetooth, conectándote directamente a ella (desvincúlala antes si es la segunda).
 

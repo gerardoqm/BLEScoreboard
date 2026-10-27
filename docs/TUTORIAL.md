@@ -100,7 +100,7 @@ You can put one board on each side of the field. The phone keeps a single Blueto
 
 1. Connect to the first board and tap **Link a second display** in the **Second display** row.
 2. Within a minute, hold the **BOOT** button on the second board for 2 seconds, until both panels say LINKED.
-3. The row shows **Mirroring** and the second board's battery. **Unlink** (or holding BOOT for 6 seconds on the second board) separates them.
+3. The second board's status LED flashes green twice a second while it is linked, and the row shows **Syncing** until the second board confirms that it has the picture, then **Mirroring**, with the second board's battery. **Unlink** (or holding BOOT for 6 seconds on the second board) separates them.
 
 A linked board no longer joins Wi-Fi: update it over Bluetooth, by connecting to it directly (unlink it first if it is the second board).
 

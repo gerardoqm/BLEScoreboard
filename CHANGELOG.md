@@ -2,6 +2,18 @@
 
 Versions follow `major.minor.patch` (see the Versions section of the README). The number in brackets is the build.
 
+## 1.6.0 (38)
+- Bundled firmware 1.6.5: reliable delivery to the second board. The first board sends what it relays one packet at a time, waits for the radio's verdict and sends again what was not acknowledged; a board that was away gets everything again when it returns. The first board's own panel is never held back.
+
+## 1.6.0 (37)
+- Bundled firmware 1.6.4: the second board now receives the goal, period and match announcements and the emoji of the team names whole (the first board relayed a mangled copy of every command).
+
+## 1.6.0 (36)
+- Second display: the second board confirms that it has the picture. The row says **Syncing** (orange) until it does and **Mirroring** (green) after, so "Mirroring" really means the second board shows the match. The first board keeps sending it everything until it confirms. Bundled firmware 1.6.3.
+
+## 1.6.0 (35)
+- Bundled firmware 1.6.2: a linked second board flashes its status LED green twice a second (it kept the blue "searching" blink, which was confusing); unlinked, it returns to the usual colors. The tutorial and README say so.
+
 ## 1.6.0 (34)
 - README and tutorial (English and Spanish) cover the goal word, the bigger emoji, the hundredths and their color, the second display, the panel type and the new unit name default; screenshots regenerated. The hundredths hint says firmware 1.6.1.
 
