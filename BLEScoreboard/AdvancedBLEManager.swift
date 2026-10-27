@@ -100,6 +100,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
     @Published var goalByHome = true
     @Published var mirrorLinked = false      // this board feeds a second board
     @Published var mirrorOnline = false      // ... and that board answered lately
+    @Published var mirrorSynced = false      // ... and it confirmed that it has the picture
     @Published var mirrorPairing = false     // this board is looking for a second board
     @Published var boardIsMirror = false     // this board itself follows another one
     @Published var mirrorBattery: Int?
@@ -573,6 +574,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
                 let wasOnline = self.mirrorOnline
                 self.mirrorLinked = flags & 0x04 != 0
                 self.mirrorOnline = flags & 0x08 != 0
+                self.mirrorSynced = flags & 0x40 != 0
                 self.boardIsMirror = flags & 0x10 != 0
                 self.mirrorPairing = flags & 0x20 != 0
                 self.boardPanelPreset = preset
@@ -740,7 +742,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
         boardClock = nil
         boardProtocolVersion = nil
         telemetryReceived = false
-        mirrorLinked = false; mirrorOnline = false; mirrorPairing = false; boardIsMirror = false; mirrorBattery = nil; boardPanelPreset = nil
+        mirrorLinked = false; mirrorOnline = false; mirrorSynced = false; mirrorPairing = false; boardIsMirror = false; mirrorBattery = nil; boardPanelPreset = nil
         
         if wasIntentionalDisconnect {
             connectedPeripheral = nil
@@ -974,7 +976,7 @@ class AdvancedBLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, 
             timerMin = 7; timerSec = 45
             periodLabelText = defaultPeriodUnit()
             batteryPercent = 82; boardProtocolVersion = 11; telemetryReceived = true
-            mirrorLinked = true; mirrorOnline = true; mirrorBattery = 64; boardPanelPreset = 0
+            mirrorLinked = true; mirrorOnline = true; mirrorSynced = true; mirrorBattery = 64; boardPanelPreset = 0
             demoScrollToBottom = args[i + 1] == "connected-bottom"
             if let f = args.firstIndex(of: "-fwDemo"), f + 1 < args.count {
                 switch args[f + 1] {

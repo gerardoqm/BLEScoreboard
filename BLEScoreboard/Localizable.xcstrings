@@ -2002,6 +2002,16 @@
           }
         }
       }
+    },
+    "Syncing" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizando"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

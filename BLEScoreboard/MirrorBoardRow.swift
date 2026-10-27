@@ -12,9 +12,10 @@ struct MirrorBoardRow: View {
                 Spacer()
                 if ble.mirrorLinked {
                     HStack(spacing: 4) {
-                        Circle().fill(ble.mirrorOnline ? Color.green : Color.orange).frame(width: 8, height: 8)
-                        Text(LocalizedStringKey(ble.mirrorOnline ? "Mirroring" : "Not answering")).font(.caption2).bold()
-                            .foregroundColor(ble.mirrorOnline ? .green : .orange)
+                        // green: the second board has the picture; orange: it answers but the picture has not arrived yet, or it does not answer
+                        Circle().fill(ble.mirrorOnline && ble.mirrorSynced ? Color.green : Color.orange).frame(width: 8, height: 8)
+                        Text(LocalizedStringKey(!ble.mirrorOnline ? "Not answering" : (ble.mirrorSynced ? "Mirroring" : "Syncing"))).font(.caption2).bold()
+                            .foregroundColor(ble.mirrorOnline && ble.mirrorSynced ? .green : .orange)
                         if let battery = ble.mirrorBattery {
                             Text("\(battery)%").font(.caption2).bold().monospacedDigit()
                                 .foregroundColor(battery < 15 ? .red : (battery < 50 ? .orange : .green))
